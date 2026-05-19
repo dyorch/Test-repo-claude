@@ -10,7 +10,7 @@ export default function PatientsPage() {
 
   const filtered = patients.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.rut.includes(search) || p.phone.includes(search);
+      p.dni.includes(search) || p.phone.includes(search);
     if (role === 'therapist') return matchSearch && p.assignedTherapistId === activeTherapistId;
     return matchSearch;
   });
@@ -48,7 +48,7 @@ export default function PatientsPage() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Buscar por nombre, RUT o teléfono…"
+          placeholder="Buscar por nombre, DNI o teléfono…"
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full max-w-sm border border-slate-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -87,7 +87,7 @@ export default function PatientsPage() {
                       </div>
                       <div>
                         <div className="font-medium text-slate-800">{p.name}</div>
-                        <div className="text-xs text-slate-400">{p.rut}</div>
+                        <div className="text-xs text-slate-400">DNI {p.dni}</div>
                       </div>
                     </div>
                   </td>

@@ -167,42 +167,35 @@ export default function CalendarView({ filterTherapistId }: Props) {
                         <span className="text-xs text-slate-400 font-medium">Almuerzo</span>
                       </div>
                     )}
-                    {dayAppts.map(appt => {
+                    {dayAppts.map((appt, apptIdx) => {
                       const patient = patients.find(p => p.id === appt.patientId);
                       const therapist = therapists.find(t => t.id === appt.therapistId);
-                      const statusColors: Record<string, string> = {
-                        SCHEDULED: '#FCD34D',
-                        CONFIRMED: '#34D399',
-                        CANCELLED: '#F87171',
-                        NO_SHOW: '#A78BFA',
-                        COMPLETED: '#94A3B8',
-                      };
+                      const count = dayAppts.length;
                       const bgColors: Record<string, string> = {
-                        SCHEDULED: '#FFFBEB',
-                        CONFIRMED: '#ECFDF5',
-                        CANCELLED: '#FEF2F2',
-                        NO_SHOW: '#F5F3FF',
-                        COMPLETED: '#F8FAFC',
+                        SCHEDULED: '#FFFBEB', CONFIRMED: '#ECFDF5', CANCELLED: '#FEF2F2',
+                        NO_SHOW: '#F5F3FF', COMPLETED: '#F8FAFC',
                       };
                       const textColors: Record<string, string> = {
-                        SCHEDULED: '#92400E',
-                        CONFIRMED: '#065F46',
-                        CANCELLED: '#991B1B',
-                        NO_SHOW: '#5B21B6',
-                        COMPLETED: '#475569',
+                        SCHEDULED: '#92400E', CONFIRMED: '#065F46', CANCELLED: '#991B1B',
+                        NO_SHOW: '#5B21B6', COMPLETED: '#475569',
                       };
+                      const slotW = `calc((100% - 6px) / ${count})`;
+                      const slotL = `calc(3px + ${apptIdx} * ((100% - 6px) / ${count}))`;
                       return (
                         <div
                           key={appt.id}
                           className="appt-block"
                           style={{
                             backgroundColor: bgColors[appt.status],
-                            borderLeftColor: therapist?.color ?? statusColors[appt.status],
+                            borderLeftColor: therapist?.color ?? '#94A3B8',
                             color: textColors[appt.status],
+                            left: slotL,
+                            width: slotW,
+                            right: 'auto',
                           }}
                           onClick={e => handleApptClick(e, appt)}
                         >
-                          <div className="font-medium truncate text-xs">{patient?.name.split(' ')[0]} {patient?.name.split(' ')[1]}</div>
+                          <div className="font-medium truncate text-xs">{patient?.name.split(' ')[0]}</div>
                           {effectiveTherapist === 'all' && (
                             <div className="text-xs opacity-70 truncate">{therapist?.name.split(' ')[0]}</div>
                           )}

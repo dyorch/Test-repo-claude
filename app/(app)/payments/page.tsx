@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
-import { formatCLP, formatDate, paymentStatusColor, paymentStatusLabel, statusColor, statusLabel } from '@/lib/utils';
+import { formatPEN, formatDate, paymentStatusColor, paymentStatusLabel, statusColor, statusLabel } from '@/lib/utils';
 
 type SubTab = 'active-plans' | 'pending-payments' | 'plan-types';
 
@@ -12,7 +12,7 @@ export default function PaymentsPage() {
   const [showAddType, setShowAddType] = useState(false);
   const [newTypeName, setNewTypeName] = useState('');
   const [newTypeCount, setNewTypeCount] = useState(10);
-  const [newTypePrice, setNewTypePrice] = useState(150000);
+  const [newTypePrice, setNewTypePrice] = useState(300);
   const [newTypeDesc, setNewTypeDesc] = useState('');
   const [filterPlans, setFilterPlans] = useState<'all' | 'active' | 'completed'>('active');
 
@@ -34,7 +34,7 @@ export default function PaymentsPage() {
     e.preventDefault();
     addPlanType({ name: newTypeName, sessionCount: newTypeCount, price: newTypePrice, description: newTypeDesc });
     setShowAddType(false);
-    setNewTypeName(''); setNewTypeCount(10); setNewTypePrice(150000); setNewTypeDesc('');
+    setNewTypeName(''); setNewTypeCount(10); setNewTypePrice(300); setNewTypeDesc('');
   }
 
   const subTabs: { id: SubTab; label: string; count?: number }[] = [
@@ -119,8 +119,8 @@ export default function PaymentsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <div className="text-sm font-medium text-slate-700">{formatCLP(pp.totalPaid)}</div>
-                        <div className="text-xs text-slate-400">{formatCLP(pt?.price ?? 0)} plan</div>
+                        <div className="text-sm font-medium text-slate-700">{formatPEN(pp.totalPaid)}</div>
+                        <div className="text-xs text-slate-400">{formatPEN(pt?.price ?? 0)} plan</div>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pp.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : pp.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'}`}>
@@ -178,7 +178,7 @@ export default function PaymentsPage() {
                         {statusLabel(appt.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-slate-800">{formatCLP(appt.paymentAmount)}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">{formatPEN(appt.paymentAmount)}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => markPaid(appt.id)}
@@ -205,7 +205,7 @@ export default function PaymentsPage() {
             {planTypes.map(pt => (
               <div key={pt.id} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="font-semibold text-slate-800 mb-1">{pt.name}</div>
-                <div className="text-2xl font-bold text-blue-600 mb-2">{formatCLP(pt.price)}</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">{formatPEN(pt.price)}</div>
                 <div className="text-sm text-slate-500 mb-3">{pt.sessionCount} sesión{pt.sessionCount !== 1 ? 'es' : ''}</div>
                 <p className="text-xs text-slate-400">{pt.description}</p>
               </div>
@@ -229,7 +229,7 @@ export default function PaymentsPage() {
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Precio ($)</label>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Precio (S/.)</label>
                     <input required type="number" value={newTypePrice} onChange={e => setNewTypePrice(Number(e.target.value))}
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>

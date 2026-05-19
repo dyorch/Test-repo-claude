@@ -1,19 +1,19 @@
 import { AppointmentStatus, PaymentStatus } from './types';
 
-export function formatCLP(amount: number): string {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
+export function formatPEN(amount: number): string {
+  return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount);
 }
 
 export function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 export function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+  return new Date(dateStr).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 }
 
 export function formatDateLong(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+  return new Date(dateStr).toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 export function getWeekDays(referenceDate: Date): Date[] {

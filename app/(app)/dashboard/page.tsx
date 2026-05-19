@@ -1,6 +1,6 @@
 'use client';
 import { useApp } from '@/contexts/app-context';
-import { formatTime, statusLabel, statusColor, statusDot, formatCLP } from '@/lib/utils';
+import { formatTime, statusLabel, statusColor, statusDot } from '@/lib/utils';
 import Link from 'next/link';
 
 const TODAY = '2026-05-19';

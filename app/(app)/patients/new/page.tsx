@@ -9,7 +9,7 @@ export default function NewPatientPage() {
   const { therapists, addPatient } = useApp();
 
   const [form, setForm] = useState({
-    name: '', rut: '', phone: '', email: '', birthDate: '',
+    name: '', dni: '', phone: '', email: '', birthDate: '',
     emergencyContactName: '', emergencyContactPhone: '',
     consultationReason: '', medicalBackground: '', referredBy: '',
     assignedTherapistId: '',
@@ -39,8 +39,8 @@ export default function NewPatientPage() {
           <div className="grid grid-cols-2 gap-4">
             {[
               ['name', 'Nombre completo', 'text', 'María González'],
-              ['rut', 'RUT', 'text', '12.345.678-9'],
-              ['phone', 'Teléfono WhatsApp', 'text', '+56912345678'],
+              ['dni', 'DNI', 'text', '12345678'],
+              ['phone', 'Teléfono WhatsApp', 'text', '+51987654321'],
               ['email', 'Email', 'email', 'paciente@gmail.com'],
               ['birthDate', 'Fecha de nacimiento', 'date', ''],
             ].map(([key, label, type, placeholder]) => (

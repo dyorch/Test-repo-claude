@@ -28,7 +28,7 @@ export interface PlanType {
 export interface Patient {
   id: string;
   name: string;
-  rut: string;
+  dni: string;
   phone: string;
   email: string;
   birthDate: string;

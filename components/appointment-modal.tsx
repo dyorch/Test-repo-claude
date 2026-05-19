@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Appointment, AppointmentStatus, PaymentMethod } from '@/lib/types';
 import { useApp } from '@/contexts/app-context';
-import { formatCLP, formatDate, statusLabel, statusColor, generateId } from '@/lib/utils';
+import { formatPEN, formatDate, statusLabel, statusColor, generateId } from '@/lib/utils';
 
 interface Props {
   appointment?: Appointment | null;
@@ -48,7 +48,7 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
   useEffect(() => {
     if (!patientPlanId) {
       const planType = planTypes.find(pt => pt.id === 'p3');
-      setPaymentAmount(planType?.price ?? 18000);
+      setPaymentAmount(planType?.price ?? 80);
     }
   }, [patientId, patientPlanId, planTypes]);
 
@@ -175,7 +175,7 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
           {!patientPlanId && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Monto ($)</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Monto (S/.)</label>
                 <input
                   type="number"
                   value={paymentAmount}

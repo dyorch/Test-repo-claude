@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
-import { formatDate, formatTime, formatCLP, statusColor, statusLabel, paymentStatusColor, paymentStatusLabel, getAge } from '@/lib/utils';
+import { formatDate, formatTime, formatPEN, statusColor, statusLabel, paymentStatusColor, paymentStatusLabel, getAge } from '@/lib/utils';
 import AppointmentModal from '@/components/appointment-modal';
 import { Appointment } from '@/lib/types';
 
@@ -83,7 +83,7 @@ export default function PatientDetailPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-slate-800">{patient.name}</h1>
           <div className="flex flex-wrap gap-3 mt-1 text-sm text-slate-500">
-            <span>{patient.rut}</span>
+            <span>DNI {patient.dni}</span>
             <span>·</span>
             <span>{getAge(patient.birthDate)} años</span>
             {therapist && (
@@ -130,7 +130,7 @@ export default function PatientDetailPage() {
             <h3 className="font-semibold text-slate-800 text-sm">Datos personales</h3>
             {[
               ['Nombre completo', patient.name],
-              ['RUT', patient.rut],
+              ['DNI', patient.dni],
               ['Teléfono', patient.phone],
               ['Email', patient.email],
               ['Fecha de nacimiento', `${formatDate(patient.birthDate)} (${getAge(patient.birthDate)} años)`],
@@ -215,7 +215,7 @@ export default function PatientDetailPage() {
                       <td className="px-4 py-3 hidden md:table-cell">
                         {appt.paymentAmount > 0 && (
                           <div>
-                            <div className="text-xs font-medium text-slate-700">{formatCLP(appt.paymentAmount)}</div>
+                            <div className="text-xs font-medium text-slate-700">{formatPEN(appt.paymentAmount)}</div>
                             <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${paymentStatusColor(appt.paymentStatus)}`}>
                               {paymentStatusLabel(appt.paymentStatus)}
                             </span>
@@ -265,7 +265,7 @@ export default function PatientDetailPage() {
                   </div>
                   <div>
                     <div className="text-xs text-slate-400">Total pagado</div>
-                    <div className="font-semibold text-slate-800">{formatCLP(pp.totalPaid)}</div>
+                    <div className="font-semibold text-slate-800">{formatPEN(pp.totalPaid)}</div>
                   </div>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2">
@@ -294,11 +294,11 @@ export default function PatientDetailPage() {
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="">Seleccionar…</option>
-                    {planTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name} — {formatCLP(pt.price)}</option>)}
+                    {planTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name} — {formatPEN(pt.price)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Monto pagado ($)</label>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Monto pagado (S/.)</label>
                   <input
                     type="number"
                     value={newPlanPaid}

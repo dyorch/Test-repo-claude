@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import { useApp } from '@/contexts/app-context';
-import { formatCLP } from '@/lib/utils';
 
 type SettingsTab = 'therapists' | 'rooms' | 'whatsapp' | 'templates' | 'hours' | 'general';
 
@@ -216,7 +215,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                   className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                  onClick={() => alert('Mensaje de prueba enviado al número +56912345678 (demo)')}
+                  onClick={() => alert('Mensaje de prueba enviado al número +51987654321 (demo)')}
                 >
                   Enviar mensaje de prueba
                 </button>
@@ -332,24 +331,22 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Dirección</label>
-                  <input defaultValue="Av. Providencia 1234, Santiago" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input defaultValue="Av. Javier Prado Este 1234, San Isidro, Lima" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Zona horaria</label>
-                  <select defaultValue="America/Santiago" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option value="America/Santiago">América/Santiago (GMT-4)</option>
-                    <option value="America/Argentina/Buenos_Aires">América/Buenos Aires (GMT-3)</option>
+                  <select defaultValue="America/Lima" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                     <option value="America/Lima">América/Lima (GMT-5)</option>
+                    <option value="America/Bogota">América/Bogotá (GMT-5)</option>
+                    <option value="America/Santiago">América/Santiago (GMT-4)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Moneda</label>
-                  <select defaultValue="CLP" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option value="CLP">Peso chileno (CLP)</option>
-                    <option value="ARS">Peso argentino (ARS)</option>
-                    <option value="PEN">Sol peruano (PEN)</option>
-                    <option value="USD">Dólar (USD)</option>
-                  </select>
+                  <div className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-500 select-none">
+                    Sol peruano (S/. — PEN)
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">La moneda es fija para este consultorio.</p>
                 </div>
                 <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
                   Guardar cambios

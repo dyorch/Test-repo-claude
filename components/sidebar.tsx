@@ -101,7 +101,7 @@ export default function Sidebar() {
               {role === 'admin' ? 'Recepcionista' : activeTherapist?.name ?? 'Terapeuta'}
             </div>
             <div className="text-slate-500 text-xs truncate">
-              {role === 'admin' ? 'recepcion@consultorio.cl' : activeTherapist?.email ?? ''}
+              {role === 'admin' ? 'recepcion@consultorio.pe' : activeTherapist?.email ?? ''}
             </div>
           </div>
         </div>

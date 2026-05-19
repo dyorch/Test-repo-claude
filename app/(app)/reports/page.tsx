@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useApp } from '@/contexts/app-context';
-import { formatCLP } from '@/lib/utils';
+import { formatPEN } from '@/lib/utils';
 import Link from 'next/link';
 
 type ReportTab = 'income' | 'pending';
@@ -92,7 +92,7 @@ export default function ReportsPage() {
           {/* Summary card */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-blue-50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-blue-700">{formatCLP(grandTotal)}</div>
+              <div className="text-2xl font-bold text-blue-700">{formatPEN(grandTotal)}</div>
               <div className="text-xs text-blue-600 font-medium mt-1">Ingresos totales</div>
             </div>
             <div className="bg-emerald-50 rounded-xl p-4">
@@ -101,7 +101,7 @@ export default function ReportsPage() {
             </div>
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="text-2xl font-bold text-slate-700">
-                {formatCLP(paidAppts.length > 0 ? grandTotal / paidAppts.length : 0)}
+                {formatPEN(paidAppts.length > 0 ? grandTotal / paidAppts.length : 0)}
               </div>
               <div className="text-xs text-slate-600 font-medium mt-1">Promedio por sesión</div>
             </div>
@@ -120,7 +120,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-slate-400">{s.sessions} ses.</span>
-                      <span className="font-semibold text-slate-800 w-28 text-right">{formatCLP(s.total)}</span>
+                      <span className="font-semibold text-slate-800 w-28 text-right">{formatPEN(s.total)}</span>
                     </div>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-3">
@@ -129,7 +129,7 @@ export default function ReportsPage() {
                       style={{ width: `${(s.total / maxTotal) * 100}%`, backgroundColor: s.therapist.color }}
                     />
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">Promedio: {formatCLP(s.avg)} / sesión</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Promedio: {formatPEN(s.avg)} / sesión</div>
                 </div>
               ))}
             </div>
@@ -145,7 +145,7 @@ export default function ReportsPage() {
               {pendingSessionsPatients.reduce((s, p) => s + p.remaining, 0)} sesiones pendientes de uso
             </div>
             <div className="text-xs text-amber-700">
-              Valor total: {formatCLP(pendingSessionsPatients.reduce((s, p) => s + p.valueLeft, 0))}
+              Valor total: {formatPEN(pendingSessionsPatients.reduce((s, p) => s + p.valueLeft, 0))}
             </div>
           </div>
 
