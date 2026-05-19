@@ -47,10 +47,9 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
 
   useEffect(() => {
     if (!patientPlanId) {
-      const planType = planTypes.find(pt => pt.id === 'p3');
-      setPaymentAmount(planType?.price ?? 80);
+      setPaymentAmount(120);
     }
-  }, [patientId, patientPlanId, planTypes]);
+  }, [patientId, patientPlanId]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

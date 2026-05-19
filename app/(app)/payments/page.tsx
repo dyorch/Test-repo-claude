@@ -12,7 +12,7 @@ export default function PaymentsPage() {
   const [showAddType, setShowAddType] = useState(false);
   const [newTypeName, setNewTypeName] = useState('');
   const [newTypeCount, setNewTypeCount] = useState(10);
-  const [newTypePrice, setNewTypePrice] = useState(300);
+  const [newTypePrice, setNewTypePrice] = useState(650);
   const [newTypeDesc, setNewTypeDesc] = useState('');
   const [filterPlans, setFilterPlans] = useState<'all' | 'active' | 'completed'>('active');
 
@@ -34,7 +34,7 @@ export default function PaymentsPage() {
     e.preventDefault();
     addPlanType({ name: newTypeName, sessionCount: newTypeCount, price: newTypePrice, description: newTypeDesc });
     setShowAddType(false);
-    setNewTypeName(''); setNewTypeCount(10); setNewTypePrice(300); setNewTypeDesc('');
+    setNewTypeName(''); setNewTypeCount(10); setNewTypePrice(650); setNewTypeDesc('');
   }
 
   const subTabs: { id: SubTab; label: string; count?: number }[] = [
