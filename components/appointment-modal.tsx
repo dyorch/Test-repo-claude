@@ -27,7 +27,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function AppointmentModal({ appointment, defaultDate, defaultHour, onClose }: Props) {
-  const { patients, therapists, rooms, planTypes, patientPlans, clinicalNotes, addAppointment, updateAppointment } = useApp();
+  const { patients, therapists, rooms, planTypes, patientPlans, clinicalNotes, addAppointment, updateAppointment, role } = useApp();
 
   const isNew = !appointment;
   const [mode, setMode] = useState<'detail' | 'edit'>(isNew ? 'edit' : 'detail');
@@ -134,13 +134,23 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
               >
                 Cerrar
               </button>
-              <button
-                type="button"
-                onClick={() => setMode('edit')}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              <Link
+                href={`/patients/${appointment.patientId}`}
+                onClick={onClose}
+                className="px-4 py-2 text-sm border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium flex items-center gap-1.5"
               >
-                Editar cita
-              </button>
+                <span>👤</span>
+                Ver paciente
+              </Link>
+              {role === 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => setMode('edit')}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Editar cita
+                </button>
+              )}
               <Link
                 href={`/appointments/${appointment.id}/clinical-note`}
                 onClick={onClose}
