@@ -6,16 +6,17 @@ import { formatDate } from '@/lib/utils';
 type InvTab = 'items' | 'purchases';
 
 export default function InventoryPage() {
-  const { inventoryItems, inventoryPurchases, addInventoryItem, addInventoryPurchase, role } = useApp();
+  const { inventoryItems, inventoryPurchases, addInventoryItem, updateInventoryItem, addInventoryPurchase, role } = useApp();
   const [tab, setTab] = useState<InvTab>('items');
-  const [showAddItem, setShowAddItem] = useState(false);
+  const [showItemForm, setShowItemForm] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showAddPurchase, setShowAddPurchase] = useState(false);
 
-  // New item form
-  const [newName, setNewName] = useState('');
-  const [newUnit, setNewUnit] = useState('unidades');
-  const [newStock, setNewStock] = useState(0);
-  const [newMin, setNewMin] = useState(0);
+  // Item form (used for both add and edit)
+  const [itemName, setItemName] = useState('');
+  const [itemUnit, setItemUnit] = useState('unidades');
+  const [itemStock, setItemStock] = useState(0);
+  const [itemMin, setItemMin] = useState(0);
 
   // New purchase form
   const [purItemId, setPurItemId] = useState('');
@@ -31,11 +32,42 @@ export default function InventoryPage() {
     );
   }
 
-  function handleAddItem(e: React.FormEvent) {
+  function openAddItem() {
+    setEditingItemId(null);
+    setItemName(''); setItemUnit('unidades'); setItemStock(0); setItemMin(0);
+    setShowItemForm(true);
+  }
+
+  function openEditItem(itemId: string) {
+    const item = inventoryItems.find(i => i.id === itemId);
+    if (!item) return;
+    setEditingItemId(itemId);
+    setItemName(item.name);
+    setItemUnit(item.unit);
+    setItemStock(item.currentStock);
+    setItemMin(item.minStock);
+    setShowItemForm(true);
+  }
+
+  function closeItemForm() {
+    setShowItemForm(false);
+    setEditingItemId(null);
+  }
+
+  function handleItemSubmit(e: React.FormEvent) {
     e.preventDefault();
-    addInventoryItem({ name: newName, unit: newUnit, currentStock: newStock, minStock: newMin });
-    setShowAddItem(false);
-    setNewName(''); setNewUnit('unidades'); setNewStock(0); setNewMin(0);
+    if (editingItemId) {
+      updateInventoryItem({
+        id: editingItemId,
+        name: itemName,
+        unit: itemUnit,
+        currentStock: itemStock,
+        minStock: itemMin,
+      });
+    } else {
+      addInventoryItem({ name: itemName, unit: itemUnit, currentStock: itemStock, minStock: itemMin });
+    }
+    closeItemForm();
   }
 
   function handleAddPurchase(e: React.FormEvent) {
@@ -87,24 +119,26 @@ export default function InventoryPage() {
             <button onClick={() => setShowAddPurchase(true)} className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">
               + Registrar compra
             </button>
-            <button onClick={() => setShowAddItem(true)} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+            <button onClick={openAddItem} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
               + Nuevo producto
             </button>
           </div>
 
-          {showAddItem && (
-            <form onSubmit={handleAddItem} className="bg-white rounded-xl border border-blue-200 p-5 space-y-3">
-              <h3 className="font-semibold text-slate-800 text-sm">Nuevo producto</h3>
+          {showItemForm && (
+            <form onSubmit={handleItemSubmit} className={`bg-white rounded-xl border p-5 space-y-3 ${editingItemId ? 'border-amber-200' : 'border-blue-200'}`}>
+              <h3 className="font-semibold text-slate-800 text-sm">
+                {editingItemId ? 'Editar producto' : 'Nuevo producto'}
+              </h3>
               <div className="grid md:grid-cols-2 gap-3">
                 <div className="md:col-span-2">
                   <label className="block text-xs font-medium text-slate-600 mb-1">Nombre del producto</label>
-                  <input required value={newName} onChange={e => setNewName(e.target.value)}
+                  <input required value={itemName} onChange={e => setItemName(e.target.value)}
                     placeholder="Ej. Agujas de acupuntura"
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Unidad</label>
-                  <select value={newUnit} onChange={e => setNewUnit(e.target.value)}
+                  <select value={itemUnit} onChange={e => setItemUnit(e.target.value)}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                     <option value="unidades">unidades</option>
                     <option value="rollos">rollos</option>
@@ -118,20 +152,30 @@ export default function InventoryPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Stock actual</label>
-                    <input required type="number" value={newStock || ''} onChange={e => setNewStock(Number(e.target.value))}
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      Stock actual
+                      {editingItemId && <span className="text-amber-600 ml-1">(ajustar manualmente)</span>}
+                    </label>
+                    <input required type="number" value={itemStock} onChange={e => setItemStock(Number(e.target.value))}
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Stock mínimo</label>
-                    <input required type="number" value={newMin || ''} onChange={e => setNewMin(Number(e.target.value))}
+                    <input required type="number" value={itemMin} onChange={e => setItemMin(Number(e.target.value))}
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
               </div>
+              {editingItemId && (
+                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  💡 Usa este formulario cuando hagas un conteo físico del inventario. Para registrar una compra y sumar al stock, usa el botón "Registrar compra".
+                </div>
+              )}
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowAddItem(false)} className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
-                <button type="submit" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Crear</button>
+                <button type="button" onClick={closeItemForm} className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                <button type="submit" className={`px-4 py-2 text-sm text-white rounded-lg font-medium ${editingItemId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  {editingItemId ? 'Guardar cambios' : 'Crear'}
+                </button>
               </div>
             </form>
           )}
@@ -180,6 +224,7 @@ export default function InventoryPage() {
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Stock actual</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Mínimo</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -200,6 +245,14 @@ export default function InventoryPage() {
                         ) : (
                           <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">OK</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => openEditItem(item.id)}
+                          className="text-xs px-2.5 py-1 border border-slate-200 text-slate-600 rounded-lg hover:border-amber-400 hover:text-amber-700 hover:bg-amber-50 transition-colors font-medium"
+                        >
+                          Editar
+                        </button>
                       </td>
                     </tr>
                   );

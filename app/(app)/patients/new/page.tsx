@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
+import {
+  CHRONIC_CONDITIONS, PAIN_ZONES, RELATIONSHIP_OPTIONS,
+  WorkPosture, PhysicalActivity, DominantHand,
+} from '@/lib/types';
 
 export default function NewPatientPage() {
   const router = useRouter();
@@ -19,10 +23,27 @@ export default function NewPatientPage() {
     isPregnant: false,
     referralSource: '',
     assignedTherapistId: '',
+    emergencyContactName: '', emergencyContactPhone: '', emergencyContactRelationship: '',
+    chronicConditions: [] as string[],
+    currentMedications: '',
+    initialPainLevel: 0,
+    workPosture: '' as WorkPosture,
+    physicalActivity: '' as PhysicalActivity,
+    painZone: '',
+    dominantHand: '' as DominantHand,
   });
 
   function set<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
+  }
+
+  function toggleCondition(condition: string) {
+    setForm(prev => ({
+      ...prev,
+      chronicConditions: prev.chronicConditions.includes(condition)
+        ? prev.chronicConditions.filter(c => c !== condition)
+        : [...prev.chronicConditions, condition],
+    }));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -97,6 +118,43 @@ export default function NewPatientPage() {
                 placeholder="paciente@gmail.com"
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Mano dominante</label>
+              <select value={form.dominantHand} onChange={e => set('dominantHand', e.target.value as DominantHand)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sin especificar</option>
+                <option value="right">Derecha</option>
+                <option value="left">Izquierda</option>
+                <option value="ambidextrous">Ambidiestro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Contacto de emergencia */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h2 className="font-semibold text-slate-800 text-sm">Contacto de emergencia</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Nombre</label>
+              <input value={form.emergencyContactName} onChange={e => set('emergencyContactName', e.target.value)}
+                placeholder="Juan Pérez"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Celular</label>
+              <input value={form.emergencyContactPhone} onChange={e => set('emergencyContactPhone', e.target.value)}
+                placeholder="+51987654321"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Parentesco</label>
+              <select value={form.emergencyContactRelationship} onChange={e => set('emergencyContactRelationship', e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sin especificar</option>
+                {RELATIONSHIP_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -108,6 +166,75 @@ export default function NewPatientPage() {
             <textarea value={form.consultationReason} onChange={e => set('consultationReason', e.target.value)}
               rows={3} placeholder="Dolor, lesión, postura…"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Zona de dolor principal</label>
+              <select value={form.painZone} onChange={e => set('painZone', e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sin especificar</option>
+                {PAIN_ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Nivel de dolor inicial (EVA): <span className="font-bold text-blue-600">{form.initialPainLevel}/10</span>
+              </label>
+              <input type="range" min="0" max="10" value={form.initialPainLevel}
+                onChange={e => set('initialPainLevel', Number(e.target.value))}
+                className="w-full accent-blue-600" />
+              <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                <span>0 sin dolor</span><span>10 máximo</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-2">Condiciones crónicas</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {CHRONIC_CONDITIONS.map(c => (
+                <label key={c} className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors text-sm ${
+                  form.chronicConditions.includes(c) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-slate-300'
+                }`}>
+                  <input type="checkbox" checked={form.chronicConditions.includes(c)}
+                    onChange={() => toggleCondition(c)}
+                    className="w-4 h-4 text-blue-600 rounded" />
+                  <span>{c}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Medicamentos actuales</label>
+            <textarea value={form.currentMedications} onChange={e => set('currentMedications', e.target.value)}
+              rows={2} placeholder="Anticoagulantes, antiinflamatorios, etc."
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Postura laboral</label>
+              <select value={form.workPosture} onChange={e => set('workPosture', e.target.value as WorkPosture)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sin especificar</option>
+                <option value="sedentary">Sedentario (oficina, escritorio)</option>
+                <option value="active">Activo (de pie / movimiento)</option>
+                <option value="mixed">Mixto</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Actividad física</label>
+              <select value={form.physicalActivity} onChange={e => set('physicalActivity', e.target.value as PhysicalActivity)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Sin especificar</option>
+                <option value="none">Ninguna</option>
+                <option value="occasional">Ocasional</option>
+                <option value="regular">Regular</option>
+                <option value="sportsman">Deportista</option>
+              </select>
+            </div>
           </div>
 
           <div>

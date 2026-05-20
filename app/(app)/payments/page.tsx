@@ -2,12 +2,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
-import { formatPEN, formatDate, formatTime, paymentMethodLabel } from '@/lib/utils';
+import { formatPEN, formatDate, formatTime, paymentMethodLabel, DatePreset, getPresetRange, isDateInRange } from '@/lib/utils';
 import { PaymentMethod } from '@/lib/types';
+import DateRangeFilter from '@/components/date-range-filter';
 
 type SubTab = 'all-payments' | 'active-plans' | 'pending-installments' | 'plan-types';
 
 const METHODS: PaymentMethod[] = ['CASH', 'TRANSFER', 'CARD', 'YAPE', 'PLIN'];
+const TODAY = new Date('2026-05-19');
 
 export default function PaymentsPage() {
   const { patientPlans, planTypes, patients, payments, therapists, addPlanType, addPayment, role } = useApp();
@@ -18,8 +20,14 @@ export default function PaymentsPage() {
   const [newTypeCount, setNewTypeCount] = useState(10);
   const [newTypePrice, setNewTypePrice] = useState(650);
   const [newTypeDesc, setNewTypeDesc] = useState('');
-  const [filterDate, setFilterDate] = useState('');
+  const [preset, setPreset] = useState<DatePreset>('today');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
   const [filterMethod, setFilterMethod] = useState<PaymentMethod | ''>('');
+
+  const effectiveRange = preset === 'custom'
+    ? { from: customFrom, to: customTo }
+    : getPresetRange(preset, TODAY);
 
   // New payment form
   const [npPatient, setNpPatient] = useState('');
@@ -31,7 +39,7 @@ export default function PaymentsPage() {
   const pendingInstallments = patientPlans.filter(pp => pp.status === 'ACTIVE' && pp.pendingAmount > 0);
 
   const filteredPayments = payments.filter(p => {
-    if (filterDate && !p.date.startsWith(filterDate)) return false;
+    if (!isDateInRange(p.date, effectiveRange.from, effectiveRange.to)) return false;
     if (filterMethod && p.paymentMethod !== filterMethod) return false;
     return true;
   }).sort((a, b) => b.date.localeCompare(a.date));
@@ -101,26 +109,22 @@ export default function PaymentsPage() {
       {subTab === 'all-payments' && (
         <div>
           <div className="flex items-center gap-3 mb-4 flex-wrap">
-            <input
-              type="date"
-              value={filterDate}
-              onChange={e => setFilterDate(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            <DateRangeFilter
+              preset={preset}
+              fromDate={customFrom}
+              toDate={customTo}
+              onPresetChange={setPreset}
+              onFromChange={setCustomFrom}
+              onToChange={setCustomTo}
             />
             <select
               value={filterMethod}
               onChange={e => setFilterMethod(e.target.value as PaymentMethod | '')}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="">Todos los métodos</option>
               {METHODS.map(m => <option key={m} value={m}>{paymentMethodLabel(m)}</option>)}
             </select>
-            {(filterDate || filterMethod) && (
-              <button onClick={() => { setFilterDate(''); setFilterMethod(''); }}
-                className="text-xs text-slate-500 hover:text-slate-700">
-                Limpiar filtros
-              </button>
-            )}
             <div className="ml-auto flex items-center gap-3">
               <span className="text-sm font-semibold text-slate-700">
                 Total: {formatPEN(filteredPayments.reduce((s, p) => s + p.amount, 0))}

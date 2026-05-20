@@ -1,47 +1,55 @@
 'use client';
 import { useState } from 'react';
 import { useApp } from '@/contexts/app-context';
-import { formatPEN, formatDate, formatTime, paymentMethodLabel } from '@/lib/utils';
+import { formatPEN, formatDate, formatTime, paymentMethodLabel, DatePreset, getPresetRange, isDateInRange } from '@/lib/utils';
+import DateRangeFilter from '@/components/date-range-filter';
 import Link from 'next/link';
 
-type ReportTab = 'daily' | 'income' | 'pending';
+type ReportTab = 'transactions' | 'income' | 'pending';
 
-const TODAY = '2026-05-19';
+const TODAY = new Date('2026-05-19');
 
 export default function ReportsPage() {
   const { appointments, therapists, patients, patientPlans, planTypes, payments } = useApp();
-  const [tab, setTab] = useState<ReportTab>('daily');
-  const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
-  const [dailyDate, setDailyDate] = useState(TODAY);
+  const [tab, setTab] = useState<ReportTab>('transactions');
 
-  function filterByPeriod(startTime: string) {
-    const d = new Date(startTime);
-    const now = new Date(TODAY);
-    if (period === 'week') {
-      const weekAgo = new Date(now);
-      weekAgo.setDate(now.getDate() - 7);
-      return d >= weekAgo && d <= now;
-    }
-    if (period === 'month') {
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    }
-    return true;
-  }
+  // Transactions filter
+  const [txPreset, setTxPreset] = useState<DatePreset>('today');
+  const [txFrom, setTxFrom] = useState('');
+  const [txTo, setTxTo] = useState('');
 
+  // Income filter
+  const [incomePreset, setIncomePreset] = useState<DatePreset>('month');
+  const [incomeFrom, setIncomeFrom] = useState('');
+  const [incomeTo, setIncomeTo] = useState('');
+
+  const txRange = txPreset === 'custom' ? { from: txFrom, to: txTo } : getPresetRange(txPreset, TODAY);
+  const incomeRange = incomePreset === 'custom' ? { from: incomeFrom, to: incomeTo } : getPresetRange(incomePreset, TODAY);
+
+  // Transactions
+  const filteredPayments = payments
+    .filter(p => isDateInRange(p.date, txRange.from, txRange.to))
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const txTotal = filteredPayments.reduce((s, p) => s + p.amount, 0);
+  const txByMethod = filteredPayments.reduce((acc, p) => {
+    acc[p.paymentMethod] = (acc[p.paymentMethod] || 0) + p.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Income
   const paidAppts = appointments.filter(a =>
-    a.paymentStatus === 'PAID' && filterByPeriod(a.startTime)
+    a.paymentStatus === 'PAID' && isDateInRange(a.startTime, incomeRange.from, incomeRange.to)
   );
-
   const therapistStats = therapists.filter(t => t.isActive).map(t => {
     const tAppts = paidAppts.filter(a => a.therapistId === t.id);
     const total = tAppts.reduce((sum, a) => sum + a.paymentAmount, 0);
     const avg = tAppts.length > 0 ? total / tAppts.length : 0;
     return { therapist: t, sessions: tAppts.length, total, avg };
   }).sort((a, b) => b.total - a.total);
-
   const grandTotal = therapistStats.reduce((sum, s) => sum + s.total, 0);
   const maxTotal = Math.max(...therapistStats.map(s => s.total), 1);
 
+  // Pending sessions
   const pendingSessionsPatients = patientPlans
     .filter(pp => pp.status === 'ACTIVE' && pp.usedSessions < pp.totalSessions)
     .map(pp => {
@@ -53,13 +61,12 @@ export default function ReportsPage() {
     })
     .sort((a, b) => b.remaining - a.remaining);
 
-  // Daily transactions
-  const dailyPayments = payments.filter(p => p.date.startsWith(dailyDate)).sort((a, b) => a.date.localeCompare(b.date));
-  const dailyTotal = dailyPayments.reduce((s, p) => s + p.amount, 0);
-  const dailyByMethod = dailyPayments.reduce((acc, p) => {
-    acc[p.paymentMethod] = (acc[p.paymentMethod] || 0) + p.amount;
-    return acc;
-  }, {} as Record<string, number>);
+  const rangeLabel = (range: { from: string; to: string }) =>
+    range.from && range.to
+      ? range.from === range.to
+        ? formatDate(range.from)
+        : `${formatDate(range.from)} – ${formatDate(range.to)}`
+      : 'Todo el período';
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -71,7 +78,7 @@ export default function ReportsPage() {
       {/* Tabs */}
       <div className="flex gap-0 border-b border-slate-200 mb-6 overflow-x-auto">
         {[
-          { id: 'daily' as const, label: 'Transacciones del día' },
+          { id: 'transactions' as const, label: 'Transacciones' },
           { id: 'income' as const, label: 'Ingresos por terapeuta' },
           { id: 'pending' as const, label: 'Sesiones pendientes' },
         ].map(t => (
@@ -85,46 +92,49 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {/* Daily Transactions */}
-      {tab === 'daily' && (
+      {/* Transactions */}
+      {tab === 'transactions' && (
         <div className="space-y-5">
-          <div className="flex items-center gap-3 flex-wrap">
-            <label className="text-sm font-medium text-slate-700">Fecha:</label>
-            <input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
+          <DateRangeFilter
+            preset={txPreset}
+            fromDate={txFrom}
+            toDate={txTo}
+            onPresetChange={setTxPreset}
+            onFromChange={setTxFrom}
+            onToChange={setTxTo}
+          />
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-blue-700">{formatPEN(dailyTotal)}</div>
+              <div className="text-2xl font-bold text-blue-700">{formatPEN(txTotal)}</div>
               <div className="text-xs text-blue-600 font-medium mt-1">Total recaudado</div>
             </div>
             <div className="bg-emerald-50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-emerald-700">{dailyPayments.length}</div>
+              <div className="text-2xl font-bold text-emerald-700">{filteredPayments.length}</div>
               <div className="text-xs text-emerald-600 font-medium mt-1">Transacciones</div>
             </div>
             <div className="bg-amber-50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-amber-700">{formatPEN(dailyByMethod['CASH'] || 0)}</div>
+              <div className="text-2xl font-bold text-amber-700">{formatPEN(txByMethod['CASH'] || 0)}</div>
               <div className="text-xs text-amber-600 font-medium mt-1">Efectivo</div>
             </div>
             <div className="bg-violet-50 rounded-xl p-4">
               <div className="text-2xl font-bold text-violet-700">
-                {formatPEN((dailyByMethod['TRANSFER'] || 0) + (dailyByMethod['YAPE'] || 0) + (dailyByMethod['PLIN'] || 0) + (dailyByMethod['CARD'] || 0))}
+                {formatPEN((txByMethod['TRANSFER'] || 0) + (txByMethod['YAPE'] || 0) + (txByMethod['PLIN'] || 0) + (txByMethod['CARD'] || 0))}
               </div>
               <div className="text-xs text-violet-600 font-medium mt-1">Digital + tarjeta</div>
             </div>
           </div>
 
           {/* Method breakdown */}
-          {dailyPayments.length > 0 && (
+          {filteredPayments.length > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 p-5">
               <h3 className="font-semibold text-slate-800 text-sm mb-3">Por método de pago</h3>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {(['CASH', 'TRANSFER', 'YAPE', 'PLIN', 'CARD'] as const).map(m => (
                   <div key={m} className="border border-slate-200 rounded-lg p-3">
                     <div className="text-xs text-slate-500">{paymentMethodLabel(m)}</div>
-                    <div className="text-base font-bold text-slate-800 mt-0.5">{formatPEN(dailyByMethod[m] || 0)}</div>
+                    <div className="text-base font-bold text-slate-800 mt-0.5">{formatPEN(txByMethod[m] || 0)}</div>
                   </div>
                 ))}
               </div>
@@ -134,12 +144,12 @@ export default function ReportsPage() {
           {/* Transaction list */}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
-              <h3 className="font-semibold text-slate-800 text-sm">Transacciones del {formatDate(dailyDate)}</h3>
+              <h3 className="font-semibold text-slate-800 text-sm">Transacciones · {rangeLabel(txRange)}</h3>
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Hora</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Cliente</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Monto</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Método</th>
@@ -147,11 +157,14 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {dailyPayments.map(p => {
+                {filteredPayments.map(p => {
                   const pat = patients.find(x => x.id === p.patientId);
                   return (
                     <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3 text-xs font-mono text-slate-500">{formatTime(p.date)}</td>
+                      <td className="px-5 py-3">
+                        <div className="text-sm font-medium text-slate-700">{formatDate(p.date)}</div>
+                        <div className="text-xs text-slate-400 font-mono">{formatTime(p.date)}</div>
+                      </td>
                       <td className="px-4 py-3">
                         <Link href={`/patients/${p.patientId}`} className="font-medium text-blue-600 hover:underline">{pat?.name}</Link>
                       </td>
@@ -165,8 +178,8 @@ export default function ReportsPage() {
                 })}
               </tbody>
             </table>
-            {dailyPayments.length === 0 && (
-              <div className="px-5 py-12 text-center text-slate-400 text-sm">Sin transacciones en esta fecha</div>
+            {filteredPayments.length === 0 && (
+              <div className="px-5 py-12 text-center text-slate-400 text-sm">Sin transacciones en este rango</div>
             )}
           </div>
         </div>
@@ -175,18 +188,14 @@ export default function ReportsPage() {
       {/* Income Tab */}
       {tab === 'income' && (
         <div className="space-y-6">
-          {/* Period filter */}
-          <div className="flex gap-2">
-            {([['week', 'Esta semana'], ['month', 'Este mes'], ['all', 'Todo el período']] as const).map(([v, l]) => (
-              <button
-                key={v}
-                onClick={() => setPeriod(v)}
-                className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${period === v ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-400'}`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
+          <DateRangeFilter
+            preset={incomePreset}
+            fromDate={incomeFrom}
+            toDate={incomeTo}
+            onPresetChange={setIncomePreset}
+            onFromChange={setIncomeFrom}
+            onToChange={setIncomeTo}
+          />
 
           {/* Summary card */}
           <div className="grid grid-cols-3 gap-4">
@@ -207,7 +216,10 @@ export default function ReportsPage() {
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 className="font-semibold text-slate-800 mb-5">Desglose por terapeuta</h3>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-semibold text-slate-800">Desglose por terapeuta</h3>
+              <span className="text-xs text-slate-500">{rangeLabel(incomeRange)}</span>
+            </div>
             <div className="space-y-4">
               {therapistStats.map(s => (
                 <div key={s.therapist.id}>

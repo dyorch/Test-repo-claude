@@ -136,3 +136,43 @@ export function formatMonth(month: number): string {
   const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   return months[month];
 }
+
+export type DatePreset = 'today' | 'week' | 'month' | 'custom';
+
+export function getPresetRange(preset: DatePreset, today: Date): { from: string; to: string } {
+  if (preset === 'today') {
+    const d = today.toISOString().split('T')[0];
+    return { from: d, to: d };
+  }
+  if (preset === 'week') {
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
+    const monday = new Date(today);
+    monday.setDate(diff);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return {
+      from: monday.toISOString().split('T')[0],
+      to: sunday.toISOString().split('T')[0],
+    };
+  }
+  if (preset === 'month') {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    return {
+      from: firstDay.toISOString().split('T')[0],
+      to: lastDay.toISOString().split('T')[0],
+    };
+  }
+  return { from: '', to: '' };
+}
+
+export function isDateInRange(dateStr: string, from: string, to: string): boolean {
+  if (!from && !to) return true;
+  const d = dateStr.split('T')[0];
+  if (from && d < from) return false;
+  if (to && d > to) return false;
+  return true;
+}

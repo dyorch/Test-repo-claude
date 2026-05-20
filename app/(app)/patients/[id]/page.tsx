@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
 import { formatDate, formatTime, formatPEN, statusColor, statusLabel, paymentStatusColor, paymentStatusLabel, getAge } from '@/lib/utils';
 import AppointmentModal from '@/components/appointment-modal';
-import { Appointment } from '@/lib/types';
+import { Appointment, WORK_POSTURE_LABEL, PHYSICAL_ACTIVITY_LABEL, DOMINANT_HAND_LABEL } from '@/lib/types';
 
 type Tab = 'info' | 'appointments' | 'plans' | 'notes';
 
@@ -22,6 +22,7 @@ export default function PatientDetailPage() {
   const [newPlanTypeId, setNewPlanTypeId] = useState('');
   const [newPlanPaid, setNewPlanPaid] = useState(0);
   const [newPlanPending, setNewPlanPending] = useState(0);
+  const [newPlanNote, setNewPlanNote] = useState('');
 
   if (!patient) {
     return (
@@ -41,6 +42,17 @@ export default function PatientDetailPage() {
     return patientAppointments.some(a => a.id === n.appointmentId);
   }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
+  // Pain evolution: from oldest to newest
+  const painHistory = [...patientNotes]
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map(n => {
+      const appt = appointments.find(a => a.id === n.appointmentId);
+      return { date: appt?.startTime ?? n.createdAt, painLevel: n.painLevel };
+    });
+  const initialPain = patient.initialPainLevel;
+  const latestPain = painHistory.length > 0 ? painHistory[painHistory.length - 1].painLevel : initialPain;
+  const painDelta = initialPain - latestPain;
+
   function handleAddPlan() {
     const pt = planTypes.find(p => p.id === newPlanTypeId);
     if (!pt) return;
@@ -51,6 +63,7 @@ export default function PatientDetailPage() {
       usedSessions: 0,
       totalPaid: newPlanPaid,
       pendingAmount: newPlanPending,
+      pendingPaymentNote: newPlanNote,
       startDate: new Date().toISOString().split('T')[0],
       status: 'ACTIVE',
     });
@@ -58,6 +71,7 @@ export default function PatientDetailPage() {
     setNewPlanTypeId('');
     setNewPlanPaid(0);
     setNewPlanPending(0);
+    setNewPlanNote('');
   }
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
@@ -86,6 +100,11 @@ export default function PatientDetailPage() {
             <h1 className="text-2xl font-bold text-slate-800">{patient.name}</h1>
             {patient.isPregnant && (
               <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-medium">Gestante</span>
+            )}
+            {patient.chronicConditions.length > 0 && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium" title={patient.chronicConditions.join(', ')}>
+                ⚠ {patient.chronicConditions.length} cond. crónica{patient.chronicConditions.length !== 1 ? 's' : ''}
+              </span>
             )}
           </div>
           <div className="flex flex-wrap gap-3 mt-1 text-sm text-slate-500">
@@ -130,45 +149,124 @@ export default function PatientDetailPage() {
 
       {/* Tab: Info */}
       {tab === 'info' && (
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-            <h3 className="font-semibold text-slate-800 text-sm">Datos personales</h3>
-            <InfoField label="Nombre completo" value={patient.name} />
-            <InfoField label="DNI" value={patient.dni} />
-            <InfoField label="Fecha de nacimiento" value={patient.birthDate ? `${formatDate(patient.birthDate)} (${getAge(patient.birthDate)} años)` : '—'} />
-            <InfoField label="Dirección" value={patient.address} />
-            <InfoField label="Ocupación" value={patient.occupation} />
-            <div className="grid grid-cols-2 gap-3">
-              <InfoField label="Peso" value={patient.weight ? `${patient.weight} kg` : '—'} />
-              <InfoField label="Talla" value={patient.height ? `${patient.height} cm` : '—'} />
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+              <h3 className="font-semibold text-slate-800 text-sm">Datos personales</h3>
+              <InfoField label="Nombre completo" value={patient.name} />
+              <InfoField label="DNI" value={patient.dni} />
+              <InfoField label="Fecha de nacimiento" value={patient.birthDate ? `${formatDate(patient.birthDate)} (${getAge(patient.birthDate)} años)` : '—'} />
+              <InfoField label="Dirección" value={patient.address} />
+              <InfoField label="Ocupación" value={patient.occupation} />
+              <div className="grid grid-cols-2 gap-3">
+                <InfoField label="Peso" value={patient.weight ? `${patient.weight} kg` : '—'} />
+                <InfoField label="Talla" value={patient.height ? `${patient.height} cm` : '—'} />
+              </div>
+              <InfoField label="Mano dominante" value={DOMINANT_HAND_LABEL[patient.dominantHand]} />
+              <InfoField label="Celular" value={patient.phone} />
+              <InfoField label="Correo" value={patient.email} />
+              <InfoField label="Paciente desde" value={formatDate(patient.createdAt)} />
             </div>
-            <InfoField label="Celular" value={patient.phone} />
-            <InfoField label="Correo" value={patient.email} />
-            <InfoField label="Paciente desde" value={formatDate(patient.createdAt)} />
+
+            <div className="space-y-6">
+              {/* Contacto de emergencia */}
+              <div className="bg-rose-50 rounded-xl border border-rose-200 p-5 space-y-3">
+                <h3 className="font-semibold text-rose-800 text-sm flex items-center gap-2">
+                  🚨 Contacto de emergencia
+                </h3>
+                {(patient.emergencyContactName || patient.emergencyContactPhone) ? (
+                  <>
+                    <InfoField label="Nombre" value={patient.emergencyContactName} />
+                    <InfoField label="Celular" value={patient.emergencyContactPhone} />
+                    <InfoField label="Parentesco" value={patient.emergencyContactRelationship} />
+                    {patient.emergencyContactPhone && (
+                      <a href={`https://wa.me/${patient.emergencyContactPhone.replace(/\D/g, '')}`} target="_blank"
+                        className="inline-block text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium">
+                        Contactar por WhatsApp
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-rose-600/70 italic">No registrado</p>
+                )}
+              </div>
+
+              <div className="bg-white rounded-xl border border-slate-200 p-5">
+                <h3 className="font-semibold text-slate-800 text-sm mb-3">Origen</h3>
+                <InfoField label="¿Cómo se enteró?" value={patient.referralSource} />
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-              <h3 className="font-semibold text-slate-800 text-sm">Información clínica</h3>
-              <InfoField label="Motivo de consulta" value={patient.consultationReason} />
+          {/* Información clínica completa */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+            <h3 className="font-semibold text-slate-800 text-sm">Información clínica</h3>
+            <InfoField label="Motivo de consulta" value={patient.consultationReason} />
+
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <div className="text-xs text-slate-400 font-medium">Tratamientos previos</div>
-                <div className="text-sm text-slate-700 mt-0.5">
-                  {patient.previousTreatments ? 'Sí' : 'No'}
-                  {patient.previousTreatments && patient.previousTreatmentsDetail && (
-                    <div className="text-slate-600 mt-0.5">{patient.previousTreatmentsDetail}</div>
+                <div className="text-xs text-slate-400 font-medium">Zona de dolor principal</div>
+                <div className="text-sm text-slate-700 mt-0.5 font-medium">{patient.painZone || '—'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-medium">Nivel inicial (EVA)</div>
+                <div className="text-sm mt-0.5">
+                  <span className="font-bold text-orange-600 text-lg">{patient.initialPainLevel}</span>
+                  <span className="text-slate-400">/10</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-medium">Última medición</div>
+                <div className="text-sm mt-0.5">
+                  {painHistory.length > 0 ? (
+                    <>
+                      <span className={`font-bold text-lg ${latestPain < initialPain ? 'text-emerald-600' : 'text-orange-600'}`}>{latestPain}</span>
+                      <span className="text-slate-400">/10</span>
+                      {painDelta > 0 && (
+                        <span className="ml-2 text-xs text-emerald-600 font-medium">↓ {painDelta} pts</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-slate-400">Sin sesiones</span>
                   )}
                 </div>
               </div>
-              <InfoField label="Exámenes" value={patient.exams} />
-              <InfoField label="Alergias" value={patient.allergies} />
-              <InfoField label="Gestante" value={patient.isPregnant ? 'Sí' : 'No'} />
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 p-5">
-              <h3 className="font-semibold text-slate-800 text-sm mb-3">Origen</h3>
-              <InfoField label="¿Cómo se enteró?" value={patient.referralSource} />
+            {patient.chronicConditions.length > 0 && (
+              <div>
+                <div className="text-xs text-slate-400 font-medium mb-1">Condiciones crónicas</div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {patient.chronicConditions.map(c => (
+                    <span key={c} className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">{c}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <InfoField label="Medicamentos actuales" value={patient.currentMedications} />
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <InfoField label="Postura laboral" value={WORK_POSTURE_LABEL[patient.workPosture]} />
+              <InfoField label="Actividad física" value={PHYSICAL_ACTIVITY_LABEL[patient.physicalActivity]} />
             </div>
+
+            <div>
+              <div className="text-xs text-slate-400 font-medium">Tratamientos previos</div>
+              <div className="text-sm text-slate-700 mt-0.5">
+                {patient.previousTreatments ? 'Sí' : 'No'}
+                {patient.previousTreatments && patient.previousTreatmentsDetail && (
+                  <div className="text-slate-600 mt-0.5">{patient.previousTreatmentsDetail}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <InfoField label="Exámenes" value={patient.exams} />
+              <InfoField label="Alergias" value={patient.allergies} />
+            </div>
+
+            <InfoField label="Gestante" value={patient.isPregnant ? 'Sí' : 'No'} />
           </div>
         </div>
       )}
@@ -287,8 +385,16 @@ export default function PatientDetailPage() {
                   />
                 </div>
                 {pp.pendingAmount > 0 && (
-                  <div className="mt-3 text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                    Plan en 2 cuotas — total {formatPEN(totalPrice)}, pendiente {formatPEN(pp.pendingAmount)}
+                  <div className="mt-3 space-y-1.5">
+                    <div className="text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                      Plan en 2 cuotas — total {formatPEN(totalPrice)}, pendiente {formatPEN(pp.pendingAmount)}
+                    </div>
+                    {pp.pendingPaymentNote && (
+                      <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                        <span className="font-medium text-slate-500">Observación: </span>
+                        {pp.pendingPaymentNote}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -327,6 +433,14 @@ export default function PatientDetailPage() {
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
+                {newPlanPending > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Observación de cuota pendiente</label>
+                    <input value={newPlanNote} onChange={e => setNewPlanNote(e.target.value)}
+                      placeholder="Ej. Pagará antes de la sesión 4, vía Yape"
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                )}
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowAddPlan(false)} className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
                   <button onClick={handleAddPlan} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Agregar</button>
@@ -347,6 +461,21 @@ export default function PatientDetailPage() {
       {/* Tab: Clinical Notes (Ficha de seguimiento) */}
       {tab === 'notes' && (
         <div className="space-y-4">
+          {/* Pain evolution */}
+          {painHistory.length > 0 && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-slate-800 text-sm">Evolución del dolor (EVA)</h3>
+                <div className="text-xs text-slate-500">
+                  Inicial <span className="font-bold text-orange-600">{initialPain}</span> →
+                  Actual <span className={`font-bold ${latestPain < initialPain ? 'text-emerald-600' : 'text-orange-600'}`}>{latestPain}</span>
+                  {painDelta > 0 && <span className="ml-2 text-emerald-600 font-medium">↓ {painDelta} pts</span>}
+                </div>
+              </div>
+              <PainChart initialPain={initialPain} history={painHistory} />
+            </div>
+          )}
+
           {patientNotes.length === 0 && (
             <div className="bg-white rounded-xl border border-slate-200 px-5 py-12 text-center text-slate-400 text-sm">
               Sin fichas de seguimiento registradas
@@ -363,6 +492,12 @@ export default function PatientDetailPage() {
                     <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: t?.color }} />
                       {t?.name}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-400 font-medium">Dolor (EVA)</div>
+                    <div className={`text-lg font-bold ${note.painLevel <= 3 ? 'text-emerald-600' : note.painLevel <= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {note.painLevel}<span className="text-sm text-slate-400">/10</span>
                     </div>
                   </div>
                 </div>
@@ -437,6 +572,28 @@ function TreatmentBadge({ label, value, detail, extra }: { label: string; value:
         {valueLabel}{extra ? ` · ${extra}` : ''}
       </div>
       {detail && <div className="text-xs opacity-75 mt-0.5 truncate" title={detail}>{detail}</div>}
+    </div>
+  );
+}
+
+function PainChart({ initialPain, history }: { initialPain: number; history: { date: string; painLevel: number }[] }) {
+  const series = [{ date: 'Inicial', painLevel: initialPain }, ...history.map(h => ({ date: formatDate(h.date), painLevel: h.painLevel }))];
+  const maxBar = 10;
+  return (
+    <div>
+      <div className="flex items-end gap-2 h-32">
+        {series.map((s, i) => {
+          const height = (s.painLevel / maxBar) * 100;
+          const color = s.painLevel <= 3 ? 'bg-emerald-500' : s.painLevel <= 6 ? 'bg-amber-500' : 'bg-red-500';
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0">
+              <div className="text-[10px] font-bold text-slate-700">{s.painLevel}</div>
+              <div className={`w-full rounded-t transition-all ${color}`} style={{ height: `${Math.max(height, 4)}%` }} />
+              <div className="text-[9px] text-slate-400 text-center truncate w-full">{s.date}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

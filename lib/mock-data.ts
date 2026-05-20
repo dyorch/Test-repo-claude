@@ -33,6 +33,10 @@ export const patients: Patient[] = [
     allergies: 'Ninguna conocida', isPregnant: false,
     referralSource: 'Recomendación de su hermana',
     assignedTherapistId: 't1', createdAt: '2025-08-10',
+    emergencyContactName: 'Carlos González', emergencyContactPhone: '+51987111222', emergencyContactRelationship: 'Esposo/a',
+    chronicConditions: ['Hipertensión arterial'], currentMedications: 'Losartán 50mg diario',
+    initialPainLevel: 7, workPosture: 'sedentary', physicalActivity: 'occasional',
+    painZone: 'Lumbar', dominantHand: 'right',
   },
   {
     id: 'pa2', name: 'Carlos Rodríguez', dni: '43567812', birthDate: '1985-11-08',
@@ -44,6 +48,10 @@ export const patients: Patient[] = [
     allergies: 'Penicilina', isPregnant: false,
     referralSource: 'Búsqueda en Google',
     assignedTherapistId: 't2', createdAt: '2025-10-05',
+    emergencyContactName: 'Pedro Rodríguez', emergencyContactPhone: '+51976111000', emergencyContactRelationship: 'Padre',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 6, workPosture: 'sedentary', physicalActivity: 'regular',
+    painZone: 'Cervical', dominantHand: 'right',
   },
   {
     id: 'pa3', name: 'Sofía Fernández', dni: '72456789', birthDate: '1995-05-15',
@@ -54,6 +62,10 @@ export const patients: Patient[] = [
     exams: '', allergies: '', isPregnant: false,
     referralSource: 'Instagram del consultorio',
     assignedTherapistId: 't3', createdAt: '2025-11-20',
+    emergencyContactName: 'María Fernández', emergencyContactPhone: '+51954000111', emergencyContactRelationship: 'Madre',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 5, workPosture: 'sedentary', physicalActivity: 'occasional',
+    painZone: 'Dorsal', dominantHand: 'right',
   },
   {
     id: 'pa4', name: 'Diego Morales', dni: '61234567', birthDate: '1992-07-30',
@@ -65,6 +77,10 @@ export const patients: Patient[] = [
     allergies: 'Antiinflamatorios (ibuprofeno)', isPregnant: false,
     referralSource: 'Recomendación del Dr. Arenas',
     assignedTherapistId: 't1', createdAt: '2025-09-03',
+    emergencyContactName: 'Laura Morales', emergencyContactPhone: '+51932000222', emergencyContactRelationship: 'Esposo/a',
+    chronicConditions: [], currentMedications: 'Paracetamol según necesidad',
+    initialPainLevel: 8, workPosture: 'mixed', physicalActivity: 'regular',
+    painZone: 'Rodilla', dominantHand: 'right',
   },
   {
     id: 'pa5', name: 'Valentina Torres', dni: '76543210', birthDate: '1998-05-14',
@@ -75,6 +91,10 @@ export const patients: Patient[] = [
     exams: '', allergies: 'Polen', isPregnant: false,
     referralSource: 'Su mamá es paciente',
     assignedTherapistId: 't2', createdAt: '2025-07-15',
+    emergencyContactName: 'Rosa Torres', emergencyContactPhone: '+51910000333', emergencyContactRelationship: 'Madre',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 4, workPosture: 'sedentary', physicalActivity: 'occasional',
+    painZone: 'Dorsal', dominantHand: 'right',
   },
   {
     id: 'pa6', name: 'Martín Herrera', dni: '42109876', birthDate: '1980-09-25',
@@ -86,6 +106,10 @@ export const patients: Patient[] = [
     allergies: 'Ninguna', isPregnant: false,
     referralSource: 'Recomendación personal',
     assignedTherapistId: 't3', createdAt: '2026-01-08',
+    emergencyContactName: 'Patricia Herrera', emergencyContactPhone: '+51988000444', emergencyContactRelationship: 'Esposo/a',
+    chronicConditions: ['Diabetes', 'Hipertensión arterial'], currentMedications: 'Metformina 850mg c/12h, Enalapril 10mg',
+    initialPainLevel: 9, workPosture: 'sedentary', physicalActivity: 'none',
+    painZone: 'Lumbar', dominantHand: 'right',
   },
   {
     id: 'pa7', name: 'Camila Ruiz', dni: '58901234', birthDate: '1993-05-28',
@@ -97,6 +121,10 @@ export const patients: Patient[] = [
     allergies: 'Látex', isPregnant: false,
     referralSource: 'Compañera del hospital',
     assignedTherapistId: 't1', createdAt: '2025-06-20',
+    emergencyContactName: 'Roberto Ruiz', emergencyContactPhone: '+51966000555', emergencyContactRelationship: 'Esposo/a',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 7, workPosture: 'active', physicalActivity: 'occasional',
+    painZone: 'Cervical', dominantHand: 'right',
   },
   {
     id: 'pa8', name: 'Felipe Castro', dni: '39012345', birthDate: '1987-04-18',
@@ -107,6 +135,10 @@ export const patients: Patient[] = [
     exams: '', allergies: '', isPregnant: false,
     referralSource: 'Facebook',
     assignedTherapistId: 't2', createdAt: '2026-02-14',
+    emergencyContactName: 'Ana Castro', emergencyContactPhone: '+51944000666', emergencyContactRelationship: 'Madre',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 6, workPosture: 'active', physicalActivity: 'occasional',
+    painZone: 'Muñeca / Mano', dominantHand: 'right',
   },
   {
     id: 'pa9', name: 'Isadora Vargas', dni: '65432109', birthDate: '1991-08-07',
@@ -118,6 +150,10 @@ export const patients: Patient[] = [
     isPregnant: true,
     referralSource: 'Obstetra (Dra. Salinas)',
     assignedTherapistId: 't3', createdAt: '2025-12-01',
+    emergencyContactName: 'Javier Vargas', emergencyContactPhone: '+51922000777', emergencyContactRelationship: 'Esposo/a',
+    chronicConditions: [], currentMedications: 'Ácido fólico, vitaminas prenatales',
+    initialPainLevel: 6, workPosture: 'sedentary', physicalActivity: 'occasional',
+    painZone: 'Lumbar', dominantHand: 'right',
   },
   {
     id: 'pa10', name: 'Benjamín Silva', dni: '71098765', birthDate: '1996-05-11',
@@ -129,17 +165,21 @@ export const patients: Patient[] = [
     allergies: '', isPregnant: false,
     referralSource: 'Búsqueda en Google',
     assignedTherapistId: 't1', createdAt: '2026-03-05',
+    emergencyContactName: 'Sofía Silva', emergencyContactPhone: '+51900000888', emergencyContactRelationship: 'Hermano/a',
+    chronicConditions: [], currentMedications: '',
+    initialPainLevel: 5, workPosture: 'sedentary', physicalActivity: 'regular',
+    painZone: 'Cervical', dominantHand: 'right',
   },
 ];
 
 export const patientPlans: PatientPlan[] = [
-  { id: 'pp1', patientId: 'pa1', planTypeId: 'p2', totalSessions: 10, usedSessions: 6, totalPaid: 1050, pendingAmount: 0,   startDate: '2025-08-10', status: 'ACTIVE' },
-  { id: 'pp2', patientId: 'pa2', planTypeId: 'p1', totalSessions: 6,  usedSessions: 4, totalPaid: 325,  pendingAmount: 325, startDate: '2025-10-05', status: 'ACTIVE' },
-  { id: 'pp3', patientId: 'pa4', planTypeId: 'p2', totalSessions: 10, usedSessions: 2, totalPaid: 525,  pendingAmount: 525, startDate: '2025-09-03', status: 'ACTIVE' },
-  { id: 'pp4', patientId: 'pa5', planTypeId: 'p1', totalSessions: 6,  usedSessions: 6, totalPaid: 650,  pendingAmount: 0,   startDate: '2025-07-15', status: 'COMPLETED' },
-  { id: 'pp5', patientId: 'pa7', planTypeId: 'p2', totalSessions: 10, usedSessions: 8, totalPaid: 1050, pendingAmount: 0,   startDate: '2025-06-20', status: 'ACTIVE' },
-  { id: 'pp6', patientId: 'pa8', planTypeId: 'p1', totalSessions: 6,  usedSessions: 1, totalPaid: 650,  pendingAmount: 0,   startDate: '2026-02-14', status: 'ACTIVE' },
-  { id: 'pp7', patientId: 'pa9', planTypeId: 'p3', totalSessions: 15, usedSessions: 4, totalPaid: 775,  pendingAmount: 775, startDate: '2025-12-01', status: 'ACTIVE' },
+  { id: 'pp1', patientId: 'pa1', planTypeId: 'p2', totalSessions: 10, usedSessions: 6, totalPaid: 1050, pendingAmount: 0,   pendingPaymentNote: '', startDate: '2025-08-10', status: 'ACTIVE' },
+  { id: 'pp2', patientId: 'pa2', planTypeId: 'p1', totalSessions: 6,  usedSessions: 4, totalPaid: 325,  pendingAmount: 325, pendingPaymentNote: 'Acordó pagar la 2da cuota antes de la sesión 4 (esta semana)', startDate: '2025-10-05', status: 'ACTIVE' },
+  { id: 'pp3', patientId: 'pa4', planTypeId: 'p2', totalSessions: 10, usedSessions: 2, totalPaid: 525,  pendingAmount: 525, pendingPaymentNote: 'Pagará 2da cuota la primera semana de junio (transferencia)', startDate: '2025-09-03', status: 'ACTIVE' },
+  { id: 'pp4', patientId: 'pa5', planTypeId: 'p1', totalSessions: 6,  usedSessions: 6, totalPaid: 650,  pendingAmount: 0,   pendingPaymentNote: '', startDate: '2025-07-15', status: 'COMPLETED' },
+  { id: 'pp5', patientId: 'pa7', planTypeId: 'p2', totalSessions: 10, usedSessions: 8, totalPaid: 1050, pendingAmount: 0,   pendingPaymentNote: '', startDate: '2025-06-20', status: 'ACTIVE' },
+  { id: 'pp6', patientId: 'pa8', planTypeId: 'p1', totalSessions: 6,  usedSessions: 1, totalPaid: 650,  pendingAmount: 0,   pendingPaymentNote: '', startDate: '2026-02-14', status: 'ACTIVE' },
+  { id: 'pp7', patientId: 'pa9', planTypeId: 'p3', totalSessions: 15, usedSessions: 4, totalPaid: 775,  pendingAmount: 775, pendingPaymentNote: 'Coordinó pago 2da cuota después del baby shower (mes 6)', startDate: '2025-12-01', status: 'ACTIVE' },
 ];
 
 // Week of 2026-05-18 (Mon) to 2026-05-22 (Fri) — today is 2026-05-19 (Tue)
@@ -193,6 +233,7 @@ export const clinicalNotes: ClinicalNote[] = [
   {
     id: 'cn1', appointmentId: 'a1', therapistId: 't1', createdAt: '2026-05-18T10:30',
     reason: 'Dolor lumbar persistente desde la semana pasada',
+    painLevel: 3,
     positionsWorked: ['boca abajo', 'de costado'],
     machinesUsed: 'Tens, ultrasonido lumbar',
     acupuncture: 'si', acupunctureDetail: 'Puntos lumbares B23, B25',
@@ -204,6 +245,7 @@ export const clinicalNotes: ClinicalNote[] = [
   {
     id: 'cn2', appointmentId: 'a2', therapistId: 't2', createdAt: '2026-05-18T10:30',
     reason: 'Control evolución tendinitis rotuliana',
+    painLevel: 5,
     positionsWorked: ['boca arriba', 'lado derecho'],
     machinesUsed: 'Crioterapia, ultrasonido rodilla',
     acupuncture: 'no', acupunctureDetail: '',
@@ -215,17 +257,19 @@ export const clinicalNotes: ClinicalNote[] = [
   {
     id: 'cn3', appointmentId: 'a3', therapistId: 't1', createdAt: '2026-05-18T11:30',
     reason: 'Cervicalgia y migraña tensional',
+    painLevel: 3,
     positionsWorked: ['boca arriba'],
     machinesUsed: 'Tens cervical',
     acupuncture: 'si', acupunctureDetail: 'Puntos cervicales y trapecio',
     traction: 'si', tractionDetail: '', tractionType: 'cervical', tractionTypeDetail: '',
     manual: 'si', manualDetail: 'Masaje cervical profundo',
     chiropractic: 'no', chiropracticDetail: '',
-    observations: 'Reduce dolor en escala de 7/10 a 3/10. Buena respuesta.',
+    observations: 'Reduce dolor de forma sostenida. Buena respuesta.',
   },
   {
     id: 'cn5', appointmentId: 'a5', therapistId: 't3', createdAt: '2026-05-18T12:30',
     reason: 'Control prenatal, dolor lumbar tercer trimestre',
+    painLevel: 4,
     positionsWorked: ['de costado', 'lado izquierdo'],
     machinesUsed: '',
     acupuncture: 'no', acupunctureDetail: '',
@@ -237,6 +281,7 @@ export const clinicalNotes: ClinicalNote[] = [
   {
     id: 'cn7', appointmentId: 'a7', therapistId: 't1', createdAt: '2026-05-18T16:30',
     reason: 'Túnel carpiano y dolor cervical por postura',
+    painLevel: 3,
     positionsWorked: ['boca arriba'],
     machinesUsed: 'Tens muñeca, ultrasonido',
     acupuncture: 'otros', acupunctureDetail: 'Electroacupuntura en muñeca derecha',
@@ -248,6 +293,7 @@ export const clinicalNotes: ClinicalNote[] = [
   {
     id: 'cn8', appointmentId: 'a8', therapistId: 't2', createdAt: '2026-05-18T17:30',
     reason: 'Lumbalgia recurrente, hernia L5-S1',
+    painLevel: 6,
     positionsWorked: ['boca abajo', 'ambos lados'],
     machinesUsed: 'Ultrasonido, tens lumbar',
     acupuncture: 'si', acupunctureDetail: 'Puntos lumbares y miembro inferior',

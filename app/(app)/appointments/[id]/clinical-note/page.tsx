@@ -29,6 +29,7 @@ export default function ClinicalNotePage() {
 
   const [form, setForm] = useState({
     reason: existing?.reason ?? '',
+    painLevel: existing?.painLevel ?? 5,
     positionsWorked: existing?.positionsWorked ?? [] as string[],
     machinesUsed: existing?.machinesUsed ?? '',
     acupuncture: (existing?.acupuncture ?? '') as TreatmentApplied,
@@ -97,7 +98,7 @@ export default function ClinicalNotePage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <h1 className="text-xl font-bold text-slate-800">Ficha de seguimiento</h1>
 
-        {/* Motivo */}
+        {/* Motivo y EVA */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de la sesión</label>
@@ -105,6 +106,22 @@ export default function ClinicalNotePage() {
               rows={2} disabled={!canEdit}
               placeholder="Razón por la que vino hoy…"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-2">
+              Nivel de dolor en esta sesión (EVA):
+              <span className={`ml-2 font-bold text-lg ${form.painLevel <= 3 ? 'text-emerald-600' : form.painLevel <= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+                {form.painLevel}/10
+              </span>
+            </label>
+            <input type="range" min="0" max="10" value={form.painLevel}
+              onChange={e => setForm({ ...form, painLevel: Number(e.target.value) })}
+              disabled={!canEdit}
+              className="w-full accent-blue-600 disabled:opacity-50" />
+            <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
+              <span>0 sin dolor</span><span>5 moderado</span><span>10 máximo</span>
+            </div>
           </div>
 
           {/* Qué se trabajó */}
