@@ -12,9 +12,9 @@ interface Props {
 }
 
 const HOURS = [9,10,11,12,14,15,16,17];
-const STATUSES: AppointmentStatus[] = ['SCHEDULED','CONFIRMED','CANCELLED','NO_SHOW','COMPLETED'];
-const METHODS: PaymentMethod[] = ['CASH','TRANSFER','CARD'];
-const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Efectivo', TRANSFER: 'Transferencia', CARD: 'Tarjeta' };
+const STATUSES: AppointmentStatus[] = ['SCHEDULED','CONFIRMED_24H','CONFIRMED_TODAY','CANCELLED','NO_SHOW','COMPLETED'];
+const METHODS: PaymentMethod[] = ['CASH','TRANSFER','CARD','YAPE','PLIN'];
+const METHOD_LABEL: Record<PaymentMethod, string> = { CASH: 'Efectivo', TRANSFER: 'Transferencia', CARD: 'Tarjeta', YAPE: 'Yape', PLIN: 'Plin' };
 
 export default function AppointmentModal({ appointment, defaultDate, defaultHour, onClose }: Props) {
   const { patients, therapists, rooms, planTypes, patientPlans, addAppointment, updateAppointment } = useApp();

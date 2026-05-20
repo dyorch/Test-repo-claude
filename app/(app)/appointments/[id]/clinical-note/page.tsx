@@ -4,6 +4,19 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
 import { formatDate, formatTime } from '@/lib/utils';
+import { TreatmentApplied, TractionType, POSITIONS_WORKED } from '@/lib/types';
+
+const TREATMENT_OPTIONS: { value: TreatmentApplied; label: string }[] = [
+  { value: 'no', label: 'No' },
+  { value: 'si', label: 'Sí' },
+  { value: 'otros', label: 'Otros' },
+];
+
+const TRACTION_TYPE_OPTIONS: { value: TractionType; label: string }[] = [
+  { value: 'cervical', label: 'Cervical' },
+  { value: 'lumbar', label: 'Lumbar' },
+  { value: 'otros', label: 'Otros' },
+];
 
 export default function ClinicalNotePage() {
   const params = useParams();
@@ -14,9 +27,22 @@ export default function ClinicalNotePage() {
   const appt = appointments.find(a => a.id === apptId);
   const existing = clinicalNotes.find(n => n.appointmentId === apptId);
 
-  const [content, setContent] = useState(existing?.sessionContent ?? '');
-  const [observations, setObservations] = useState(existing?.observations ?? '');
-  const [nextPlan, setNextPlan] = useState(existing?.nextSessionPlan ?? '');
+  const [form, setForm] = useState({
+    reason: existing?.reason ?? '',
+    positionsWorked: existing?.positionsWorked ?? [] as string[],
+    machinesUsed: existing?.machinesUsed ?? '',
+    acupuncture: (existing?.acupuncture ?? '') as TreatmentApplied,
+    acupunctureDetail: existing?.acupunctureDetail ?? '',
+    traction: (existing?.traction ?? '') as TreatmentApplied,
+    tractionDetail: existing?.tractionDetail ?? '',
+    tractionType: (existing?.tractionType ?? '') as TractionType,
+    tractionTypeDetail: existing?.tractionTypeDetail ?? '',
+    manual: (existing?.manual ?? '') as TreatmentApplied,
+    manualDetail: existing?.manualDetail ?? '',
+    chiropractic: (existing?.chiropractic ?? '') as TreatmentApplied,
+    chiropracticDetail: existing?.chiropracticDetail ?? '',
+    observations: existing?.observations ?? '',
+  });
 
   if (!appt) return <div className="p-6 text-slate-500">Cita no encontrada.</div>;
 
@@ -24,24 +50,31 @@ export default function ClinicalNotePage() {
   const therapist = therapists.find(t => t.id === appt.therapistId);
   const canEdit = role === 'admin' || (role === 'therapist' && appt.therapistId === activeTherapistId);
 
+  function togglePosition(pos: string) {
+    setForm(prev => ({
+      ...prev,
+      positionsWorked: prev.positionsWorked.includes(pos)
+        ? prev.positionsWorked.filter(p => p !== pos)
+        : [...prev.positionsWorked, pos],
+    }));
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (existing) {
-      updateClinicalNote({ ...existing, sessionContent: content, observations, nextSessionPlan: nextPlan });
+      updateClinicalNote({ ...existing, ...form });
     } else {
       addClinicalNote({
         appointmentId: apptId,
         therapistId: appt!.therapistId,
-        sessionContent: content,
-        observations,
-        nextSessionPlan: nextPlan,
+        ...form,
       });
     }
     router.push(`/patients/${appt!.patientId}?tab=notes`);
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-3xl mx-auto">
       <Link href="/calendar" className="text-sm text-slate-400 hover:text-slate-600 mb-4 inline-flex items-center gap-1">
         ← Calendario
       </Link>
@@ -62,45 +95,110 @@ export default function ClinicalNotePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        <h1 className="text-xl font-bold text-slate-800">Ficha de seguimiento</h1>
+
+        {/* Motivo */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-          <h2 className="font-semibold text-slate-800 text-sm">Ficha clínica</h2>
-
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">¿Qué se trabajó en sesión? <span className="text-red-500">*</span></label>
-            <textarea
-              required
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              rows={5}
-              disabled={!canEdit}
-              placeholder="Describe las técnicas usadas, temas abordados, respuesta del paciente…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50 disabled:text-slate-500"
-            />
+            <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de la sesión</label>
+            <textarea required value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })}
+              rows={2} disabled={!canEdit}
+              placeholder="Razón por la que vino hoy…"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50" />
+          </div>
+
+          {/* Qué se trabajó */}
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-2">¿Qué se trabajó? (posiciones)</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {POSITIONS_WORKED.map(pos => (
+                <label key={pos} className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${form.positionsWorked.includes(pos) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input type="checkbox" checked={form.positionsWorked.includes(pos)}
+                    onChange={() => togglePosition(pos)} disabled={!canEdit}
+                    className="w-4 h-4 text-blue-600 rounded" />
+                  <span className="text-sm capitalize">{pos}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Observaciones</label>
-            <textarea
-              value={observations}
-              onChange={e => setObservations(e.target.value)}
-              rows={3}
-              disabled={!canEdit}
-              placeholder="Estado emocional, conductas observadas, notas importantes…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50 disabled:text-slate-500"
-            />
+            <label className="block text-xs font-medium text-slate-600 mb-1">Máquinas utilizadas</label>
+            <input value={form.machinesUsed} onChange={e => setForm({ ...form, machinesUsed: e.target.value })}
+              disabled={!canEdit} placeholder="Tens, ultrasonido, crioterapia…"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
           </div>
+        </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Plan para próxima sesión</label>
-            <textarea
-              value={nextPlan}
-              onChange={e => setNextPlan(e.target.value)}
-              rows={3}
-              disabled={!canEdit}
-              placeholder="Qué se abordará en la siguiente sesión, tareas asignadas…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50 disabled:text-slate-500"
-            />
-          </div>
+        {/* Técnicas aplicadas */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h3 className="font-semibold text-slate-800 text-sm">Técnicas aplicadas</h3>
+
+          {/* Acupuntura */}
+          <TreatmentRow
+            label="Acupuntura"
+            value={form.acupuncture}
+            detail={form.acupunctureDetail}
+            disabled={!canEdit}
+            onChange={(v, d) => setForm({ ...form, acupuncture: v, acupunctureDetail: d ?? form.acupunctureDetail })}
+          />
+
+          {/* Tracción */}
+          <TreatmentRow
+            label="Tracción"
+            value={form.traction}
+            detail={form.tractionDetail}
+            disabled={!canEdit}
+            onChange={(v, d) => setForm({ ...form, traction: v, tractionDetail: d ?? form.tractionDetail })}
+          />
+          {form.traction === 'si' && (
+            <div className="ml-6 pl-3 border-l-2 border-blue-200 space-y-2">
+              <label className="block text-xs font-medium text-slate-600">Tipo de tracción</label>
+              <div className="flex gap-3">
+                {TRACTION_TYPE_OPTIONS.map(opt => (
+                  <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" checked={form.tractionType === opt.value}
+                      onChange={() => setForm({ ...form, tractionType: opt.value })}
+                      disabled={!canEdit} className="text-blue-600" />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {form.tractionType === 'otros' && (
+                <input value={form.tractionTypeDetail}
+                  onChange={e => setForm({ ...form, tractionTypeDetail: e.target.value })}
+                  disabled={!canEdit} placeholder="Especifique…"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
+              )}
+            </div>
+          )}
+
+          {/* Manual */}
+          <TreatmentRow
+            label="Manual"
+            value={form.manual}
+            detail={form.manualDetail}
+            disabled={!canEdit}
+            onChange={(v, d) => setForm({ ...form, manual: v, manualDetail: d ?? form.manualDetail })}
+          />
+
+          {/* Quiropráctica */}
+          <TreatmentRow
+            label="Quiropráctica"
+            value={form.chiropractic}
+            detail={form.chiropracticDetail}
+            disabled={!canEdit}
+            onChange={(v, d) => setForm({ ...form, chiropractic: v, chiropracticDetail: d ?? form.chiropracticDetail })}
+          />
+        </div>
+
+        {/* Observaciones */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5">
+          <label className="block text-xs font-medium text-slate-600 mb-1">Observaciones</label>
+          <textarea value={form.observations} onChange={e => setForm({ ...form, observations: e.target.value })}
+            rows={4} disabled={!canEdit}
+            placeholder="Evolución, respuesta del paciente, indicaciones…"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50" />
         </div>
 
         {canEdit && (
@@ -114,6 +212,38 @@ export default function ClinicalNotePage() {
           </div>
         )}
       </form>
+    </div>
+  );
+}
+
+function TreatmentRow({ label, value, detail, disabled, onChange }: {
+  label: string;
+  value: TreatmentApplied;
+  detail: string;
+  disabled: boolean;
+  onChange: (v: TreatmentApplied, d?: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-4 flex-wrap">
+        <span className="text-sm font-medium text-slate-700 w-28 flex-shrink-0">{label}</span>
+        <div className="flex gap-3">
+          {TREATMENT_OPTIONS.map(opt => (
+            <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" checked={value === opt.value}
+                onChange={() => onChange(opt.value)}
+                disabled={disabled} className="text-blue-600" />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      {value === 'otros' && (
+        <input value={detail}
+          onChange={e => onChange(value, e.target.value)}
+          disabled={disabled} placeholder="Especifique…"
+          className="mt-2 w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
+      )}
     </div>
   );
 }

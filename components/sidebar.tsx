@@ -8,6 +8,7 @@ const adminNav = [
   { href: '/calendar', icon: '▦', label: 'Calendario' },
   { href: '/patients', icon: '◎', label: 'Pacientes' },
   { href: '/payments', icon: '◈', label: 'Pagos & Planes' },
+  { href: '/inventory', icon: '◰', label: 'Inventario' },
   { href: '/reports', icon: '◫', label: 'Reportes' },
   { href: '/settings', icon: '◳', label: 'Configuración' },
 ];

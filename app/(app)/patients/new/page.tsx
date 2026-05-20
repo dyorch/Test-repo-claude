@@ -9,13 +9,19 @@ export default function NewPatientPage() {
   const { therapists, addPatient } = useApp();
 
   const [form, setForm] = useState({
-    name: '', dni: '', phone: '', email: '', birthDate: '',
-    emergencyContactName: '', emergencyContactPhone: '',
-    consultationReason: '', medicalBackground: '', referredBy: '',
+    name: '', dni: '', birthDate: '',
+    address: '', occupation: '',
+    weight: 0, height: 0,
+    phone: '', email: '',
+    consultationReason: '',
+    previousTreatments: false, previousTreatmentsDetail: '',
+    exams: '', allergies: '',
+    isPregnant: false,
+    referralSource: '',
     assignedTherapistId: '',
   });
 
-  function set(key: string, value: string) {
+  function set<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
   }
 
@@ -30,82 +36,148 @@ export default function NewPatientPage() {
       <Link href="/patients" className="text-sm text-slate-400 hover:text-slate-600 mb-4 inline-flex items-center gap-1">
         ← Pacientes
       </Link>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6 mt-2">Nuevo paciente</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-1 mt-2">Ficha de admisión</h1>
+      <p className="text-sm text-slate-500 mb-6">Nuevo paciente</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal */}
+        {/* Datos personales */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
           <h2 className="font-semibold text-slate-800 text-sm">Datos personales</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              ['name', 'Nombre completo', 'text', 'María González'],
-              ['dni', 'DNI', 'text', '12345678'],
-              ['phone', 'Teléfono WhatsApp', 'text', '+51987654321'],
-              ['email', 'Email', 'email', 'paciente@gmail.com'],
-              ['birthDate', 'Fecha de nacimiento', 'date', ''],
-            ].map(([key, label, type, placeholder]) => (
-              <div key={key} className={key === 'name' ? 'col-span-2' : ''}>
-                <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
-                <input
-                  required={['name', 'phone'].includes(key as string)}
-                  type={type as string}
-                  placeholder={placeholder as string}
-                  value={(form as any)[key]}
-                  onChange={e => set(key as string, e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-600 mb-1">Nombre completo *</label>
+              <input required value={form.name} onChange={e => set('name', e.target.value)}
+                placeholder="María Pérez Sánchez"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">DNI</label>
+              <input value={form.dni} onChange={e => set('dni', e.target.value)}
+                placeholder="12345678"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Fecha de nacimiento</label>
+              <input type="date" value={form.birthDate} onChange={e => set('birthDate', e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-600 mb-1">Dirección</label>
+              <input value={form.address} onChange={e => set('address', e.target.value)}
+                placeholder="Av. Javier Prado 1234, San Isidro"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Ocupación</label>
+              <input value={form.occupation} onChange={e => set('occupation', e.target.value)}
+                placeholder="Contadora"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Peso (kg)</label>
+                <input type="number" value={form.weight || ''} onChange={e => set('weight', Number(e.target.value))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-            ))}
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Talla (cm)</label>
+                <input type="number" value={form.height || ''} onChange={e => set('height', Number(e.target.value))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Celular *</label>
+              <input required value={form.phone} onChange={e => set('phone', e.target.value)}
+                placeholder="+51987654321"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Correo</label>
+              <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+                placeholder="paciente@gmail.com"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Información clínica */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h2 className="font-semibold text-slate-800 text-sm">Información clínica</h2>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de consulta</label>
+            <textarea value={form.consultationReason} onChange={e => set('consultationReason', e.target.value)}
+              rows={3} placeholder="Dolor, lesión, postura…"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-2">¿Tratamientos previos?</label>
+            <div className="flex gap-4 mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={!form.previousTreatments}
+                  onChange={() => { set('previousTreatments', false); set('previousTreatmentsDetail', ''); }}
+                  className="text-blue-600" />
+                <span className="text-sm">No</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" checked={form.previousTreatments}
+                  onChange={() => set('previousTreatments', true)}
+                  className="text-blue-600" />
+                <span className="text-sm">Sí</span>
+              </label>
+            </div>
+            {form.previousTreatments && (
+              <input value={form.previousTreatmentsDetail} onChange={e => set('previousTreatmentsDetail', e.target.value)}
+                placeholder="Describa los tratamientos previos…"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Exámenes</label>
+              <textarea value={form.exams} onChange={e => set('exams', e.target.value)}
+                rows={2} placeholder="RMN, ecografía, rayos X…"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Alergias</label>
+              <textarea value={form.allergies} onChange={e => set('allergies', e.target.value)}
+                rows={2} placeholder="Medicamentos, alimentos…"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.isPregnant}
+                onChange={e => set('isPregnant', e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded" />
+              <span className="text-sm font-medium text-slate-700">Gestante</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Origen */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h2 className="font-semibold text-slate-800 text-sm">Origen</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">¿Cómo se enteró?</label>
+              <input value={form.referralSource} onChange={e => set('referralSource', e.target.value)}
+                placeholder="Recomendación, redes sociales, Google…"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Terapeuta asignado</label>
-              <select
-                value={form.assignedTherapistId}
-                onChange={e => set('assignedTherapistId', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
+              <select value={form.assignedTherapistId} onChange={e => set('assignedTherapistId', e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">Sin asignar</option>
                 {therapists.filter(t => t.isActive).map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
             </div>
-          </div>
-        </div>
-
-        {/* Emergency */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-          <h2 className="font-semibold text-slate-800 text-sm">Contacto de emergencia</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Nombre</label>
-              <input value={form.emergencyContactName} onChange={e => set('emergencyContactName', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Teléfono</label>
-              <input value={form.emergencyContactPhone} onChange={e => set('emergencyContactPhone', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Clinical */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-          <h2 className="font-semibold text-slate-800 text-sm">Información clínica inicial</h2>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de consulta</label>
-            <textarea value={form.consultationReason} onChange={e => set('consultationReason', e.target.value)}
-              rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Antecedentes médicos</label>
-            <textarea value={form.medicalBackground} onChange={e => set('medicalBackground', e.target.value)}
-              rows={2} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Derivado por</label>
-            <input value={form.referredBy} onChange={e => set('referredBy', e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
 

@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useState } from 'react';
 import {
   Therapist, Room, PlanType, Patient, PatientPlan,
-  Appointment, ClinicalNote, WhatsAppConfig, AppointmentStatus
+  Appointment, ClinicalNote, WhatsAppConfig, AppointmentStatus,
+  InventoryItem, InventoryPurchase, Payment
 } from '@/lib/types';
 import {
   therapists as initTherapists,
@@ -13,6 +14,9 @@ import {
   appointments as initAppointments,
   clinicalNotes as initClinicalNotes,
   whatsAppConfig as initWhatsApp,
+  inventoryItems as initInventoryItems,
+  inventoryPurchases as initInventoryPurchases,
+  payments as initPayments,
 } from '@/lib/mock-data';
 import { generateId } from '@/lib/utils';
 
@@ -31,6 +35,9 @@ interface AppContextValue {
   appointments: Appointment[];
   clinicalNotes: ClinicalNote[];
   whatsAppConfig: WhatsAppConfig;
+  inventoryItems: InventoryItem[];
+  inventoryPurchases: InventoryPurchase[];
+  payments: Payment[];
   toggleTherapist: (id: string) => void;
   toggleRoom: (id: string) => void;
   updateTherapist: (t: Therapist) => void;
@@ -44,6 +51,10 @@ interface AppContextValue {
   addPatientPlan: (pp: Omit<PatientPlan, 'id'>) => void;
   addPlanType: (pt: Omit<PlanType, 'id'>) => void;
   updateWhatsAppConfig: (cfg: WhatsAppConfig) => void;
+  addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void;
+  updateInventoryItem: (i: InventoryItem) => void;
+  addInventoryPurchase: (p: Omit<InventoryPurchase, 'id'>) => void;
+  addPayment: (p: Omit<Payment, 'id'>) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -59,6 +70,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [appointments, setAppointments] = useState(initAppointments);
   const [clinicalNotes, setClinicalNotes] = useState(initClinicalNotes);
   const [whatsAppConfig, setWhatsAppConfig] = useState(initWhatsApp);
+  const [inventoryItems, setInventoryItems] = useState(initInventoryItems);
+  const [inventoryPurchases, setInventoryPurchases] = useState(initInventoryPurchases);
+  const [payments, setPayments] = useState(initPayments);
 
   function toggleTherapist(id: string) {
     setTherapists(prev => prev.map(t => t.id === id ? { ...t, isActive: !t.isActive } : t));
@@ -114,17 +128,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setWhatsAppConfig(cfg);
   }
 
+  function addInventoryItem(i: Omit<InventoryItem, 'id'>) {
+    setInventoryItems(prev => [...prev, { ...i, id: generateId() }]);
+  }
+
+  function updateInventoryItem(i: InventoryItem) {
+    setInventoryItems(prev => prev.map(x => x.id === i.id ? i : x));
+  }
+
+  function addInventoryPurchase(p: Omit<InventoryPurchase, 'id'>) {
+    const purchase: InventoryPurchase = { ...p, id: generateId() };
+    setInventoryPurchases(prev => [...prev, purchase]);
+    setInventoryItems(prev => prev.map(i =>
+      i.id === p.itemId ? { ...i, currentStock: i.currentStock + p.quantity } : i
+    ));
+  }
+
+  function addPayment(p: Omit<Payment, 'id'>) {
+    setPayments(prev => [...prev, { ...p, id: generateId() }]);
+  }
+
   return (
     <AppContext.Provider value={{
       role, activeTherapistId, setRole, setActiveTherapistId,
       therapists, rooms, planTypes, patients, patientPlans,
       appointments, clinicalNotes, whatsAppConfig,
+      inventoryItems, inventoryPurchases, payments,
       toggleTherapist, toggleRoom, updateTherapist,
       addAppointment, updateAppointment, updateAppointmentStatus,
       addPatient, updatePatient,
       addClinicalNote, updateClinicalNote,
       addPatientPlan, addPlanType,
       updateWhatsAppConfig,
+      addInventoryItem, updateInventoryItem, addInventoryPurchase,
+      addPayment,
     }}>
       {children}
     </AppContext.Provider>

@@ -1,19 +1,22 @@
 'use client';
 import { useState } from 'react';
 import { useApp } from '@/contexts/app-context';
-import { formatPEN } from '@/lib/utils';
+import { formatPEN, formatDate, formatTime, paymentMethodLabel } from '@/lib/utils';
 import Link from 'next/link';
 
-type ReportTab = 'income' | 'pending';
+type ReportTab = 'daily' | 'income' | 'pending';
+
+const TODAY = '2026-05-19';
 
 export default function ReportsPage() {
-  const { appointments, therapists, patients, patientPlans, planTypes } = useApp();
-  const [tab, setTab] = useState<ReportTab>('income');
+  const { appointments, therapists, patients, patientPlans, planTypes, payments } = useApp();
+  const [tab, setTab] = useState<ReportTab>('daily');
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
+  const [dailyDate, setDailyDate] = useState(TODAY);
 
   function filterByPeriod(startTime: string) {
     const d = new Date(startTime);
-    const now = new Date('2026-05-19');
+    const now = new Date(TODAY);
     if (period === 'week') {
       const weekAgo = new Date(now);
       weekAgo.setDate(now.getDate() - 7);
@@ -50,28 +53,124 @@ export default function ReportsPage() {
     })
     .sort((a, b) => b.remaining - a.remaining);
 
+  // Daily transactions
+  const dailyPayments = payments.filter(p => p.date.startsWith(dailyDate)).sort((a, b) => a.date.localeCompare(b.date));
+  const dailyTotal = dailyPayments.reduce((s, p) => s + p.amount, 0);
+  const dailyByMethod = dailyPayments.reduce((acc, p) => {
+    acc[p.paymentMethod] = (acc[p.paymentMethod] || 0) + p.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Reportes</h1>
         <p className="text-slate-500 text-sm mt-0.5">Análisis y estadísticas del consultorio</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-0 border-b border-slate-200 mb-6">
+      <div className="flex gap-0 border-b border-slate-200 mb-6 overflow-x-auto">
         {[
+          { id: 'daily' as const, label: 'Transacciones del día' },
           { id: 'income' as const, label: 'Ingresos por terapeuta' },
           { id: 'pending' as const, label: 'Sesiones pendientes' },
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
             {t.label}
           </button>
         ))}
       </div>
+
+      {/* Daily Transactions */}
+      {tab === 'daily' && (
+        <div className="space-y-5">
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="text-sm font-medium text-slate-700">Fecha:</label>
+            <input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)}
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-blue-50 rounded-xl p-4">
+              <div className="text-2xl font-bold text-blue-700">{formatPEN(dailyTotal)}</div>
+              <div className="text-xs text-blue-600 font-medium mt-1">Total recaudado</div>
+            </div>
+            <div className="bg-emerald-50 rounded-xl p-4">
+              <div className="text-2xl font-bold text-emerald-700">{dailyPayments.length}</div>
+              <div className="text-xs text-emerald-600 font-medium mt-1">Transacciones</div>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-4">
+              <div className="text-2xl font-bold text-amber-700">{formatPEN(dailyByMethod['CASH'] || 0)}</div>
+              <div className="text-xs text-amber-600 font-medium mt-1">Efectivo</div>
+            </div>
+            <div className="bg-violet-50 rounded-xl p-4">
+              <div className="text-2xl font-bold text-violet-700">
+                {formatPEN((dailyByMethod['TRANSFER'] || 0) + (dailyByMethod['YAPE'] || 0) + (dailyByMethod['PLIN'] || 0) + (dailyByMethod['CARD'] || 0))}
+              </div>
+              <div className="text-xs text-violet-600 font-medium mt-1">Digital + tarjeta</div>
+            </div>
+          </div>
+
+          {/* Method breakdown */}
+          {dailyPayments.length > 0 && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <h3 className="font-semibold text-slate-800 text-sm mb-3">Por método de pago</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {(['CASH', 'TRANSFER', 'YAPE', 'PLIN', 'CARD'] as const).map(m => (
+                  <div key={m} className="border border-slate-200 rounded-lg p-3">
+                    <div className="text-xs text-slate-500">{paymentMethodLabel(m)}</div>
+                    <div className="text-base font-bold text-slate-800 mt-0.5">{formatPEN(dailyByMethod[m] || 0)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Transaction list */}
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
+              <h3 className="font-semibold text-slate-800 text-sm">Transacciones del {formatDate(dailyDate)}</h3>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Hora</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Cliente</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Monto</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Método</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide hidden md:table-cell">Observación</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {dailyPayments.map(p => {
+                  const pat = patients.find(x => x.id === p.patientId);
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3 text-xs font-mono text-slate-500">{formatTime(p.date)}</td>
+                      <td className="px-4 py-3">
+                        <Link href={`/patients/${p.patientId}`} className="font-medium text-blue-600 hover:underline">{pat?.name}</Link>
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatPEN(p.amount)}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">{paymentMethodLabel(p.paymentMethod)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-600 hidden md:table-cell">{p.observation}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {dailyPayments.length === 0 && (
+              <div className="px-5 py-12 text-center text-slate-400 text-sm">Sin transacciones en esta fecha</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Income Tab */}
       {tab === 'income' && (
@@ -107,7 +206,6 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Bar chart + table */}
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-800 mb-5">Desglose por terapeuta</h3>
             <div className="space-y-4">

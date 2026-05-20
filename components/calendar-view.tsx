@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useApp } from '@/contexts/app-context';
 import { Appointment } from '@/lib/types';
-import { getWeekDays, isSameDay, statusDot } from '@/lib/utils';
+import { getWeekDays, isSameDay, statusSolidBg } from '@/lib/utils';
 import AppointmentModal from './appointment-modal';
 
 const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function CalendarView({ filterTherapistId }: Props) {
-  const { appointments, patients, therapists, rooms, role, activeTherapistId } = useApp();
+  const { appointments, patients, therapists, role, activeTherapistId } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date('2026-05-19'));
   const [view, setView] = useState<'week' | 'day'>('week');
   const [selectedTherapist, setSelectedTherapist] = useState(filterTherapistId ?? 'all');
@@ -81,8 +81,8 @@ export default function CalendarView({ filterTherapistId }: Props) {
 
         <span className="font-semibold text-slate-800 text-sm">
           {view === 'week'
-            ? `Semana del ${weekDays[0].toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })} al ${weekDays[4].toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`
-            : currentDate.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+            ? `Semana del ${weekDays[0].toLocaleDateString('es-PE', { day: 'numeric', month: 'long' })} al ${weekDays[4].toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })}`
+            : currentDate.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
           }
         </span>
 
@@ -120,6 +120,24 @@ export default function CalendarView({ filterTherapistId }: Props) {
         )}
       </div>
 
+      {/* Status legend */}
+      <div className="flex items-center gap-3 px-6 py-2 border-b border-slate-100 bg-slate-50 flex-wrap text-xs">
+        <span className="text-slate-500 font-medium">Estados:</span>
+        {[
+          { label: 'Sin confirmar', color: '#F59E0B' },
+          { label: 'Confirmada 24h', color: '#0EA5E9' },
+          { label: 'Confirmada hoy', color: '#10B981' },
+          { label: 'Completada', color: '#8B5CF6' },
+          { label: 'No asistió', color: '#64748B' },
+          { label: 'Cancelada', color: '#EF4444' },
+        ].map(s => (
+          <div key={s.label} className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: s.color }} />
+            <span className="text-slate-600">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
       {/* Calendar Grid */}
       <div className="flex-1 overflow-auto">
         <div className="cal-grid" style={{ '--cal-cols': cols } as React.CSSProperties}>
@@ -133,7 +151,7 @@ export default function CalendarView({ filterTherapistId }: Props) {
                 className={`sticky top-0 bg-white border-b border-r border-slate-200 z-10 px-2 py-2 text-center`}
               >
                 <div className={`text-xs font-medium ${isToday ? 'text-blue-600' : 'text-slate-500'}`}>
-                  {d.toLocaleDateString('es-CL', { weekday: 'short' }).toUpperCase()}
+                  {d.toLocaleDateString('es-PE', { weekday: 'short' }).toUpperCase()}
                 </div>
                 <div className={`text-lg font-bold mt-0.5 w-8 h-8 flex items-center justify-center mx-auto rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-slate-800'}`}>
                   {d.getDate()}
@@ -164,40 +182,31 @@ export default function CalendarView({ filterTherapistId }: Props) {
                   >
                     {isLunch && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs text-slate-400 font-medium">Almuerzo</span>
+                        <span className="text-xs text-slate-500 font-medium">Almuerzo</span>
                       </div>
                     )}
                     {dayAppts.map((appt, apptIdx) => {
                       const patient = patients.find(p => p.id === appt.patientId);
                       const therapist = therapists.find(t => t.id === appt.therapistId);
                       const count = dayAppts.length;
-                      const bgColors: Record<string, string> = {
-                        SCHEDULED: '#FFFBEB', CONFIRMED: '#ECFDF5', CANCELLED: '#FEF2F2',
-                        NO_SHOW: '#F5F3FF', COMPLETED: '#F8FAFC',
-                      };
-                      const textColors: Record<string, string> = {
-                        SCHEDULED: '#92400E', CONFIRMED: '#065F46', CANCELLED: '#991B1B',
-                        NO_SHOW: '#5B21B6', COMPLETED: '#475569',
-                      };
+                      const bgColor = statusSolidBg(appt.status);
                       const slotW = `calc((100% - 6px) / ${count})`;
                       const slotL = `calc(3px + ${apptIdx} * ((100% - 6px) / ${count}))`;
                       return (
                         <div
                           key={appt.id}
-                          className="appt-block"
+                          className="appt-block-solid"
                           style={{
-                            backgroundColor: bgColors[appt.status],
+                            backgroundColor: bgColor,
                             borderLeftColor: therapist?.color ?? '#94A3B8',
-                            color: textColors[appt.status],
                             left: slotL,
                             width: slotW,
-                            right: 'auto',
                           }}
                           onClick={e => handleApptClick(e, appt)}
                         >
-                          <div className="font-medium truncate text-xs">{patient?.name.split(' ')[0]}</div>
+                          <div className="font-semibold truncate text-xs text-white">{patient?.name.split(' ')[0]}</div>
                           {effectiveTherapist === 'all' && (
-                            <div className="text-xs opacity-70 truncate">{therapist?.name.split(' ')[0]}</div>
+                            <div className="text-[10px] text-white/80 truncate">{therapist?.name.split(' ')[0]}</div>
                           )}
                         </div>
                       );

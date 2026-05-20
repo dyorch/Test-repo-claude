@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/contexts/app-context';
 import { formatDate, formatTime, formatPEN, statusColor, statusLabel, paymentStatusColor, paymentStatusLabel, getAge } from '@/lib/utils';
@@ -11,7 +11,6 @@ type Tab = 'info' | 'appointments' | 'plans' | 'notes';
 
 export default function PatientDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const { patients, therapists, appointments, patientPlans, planTypes, clinicalNotes, addPatientPlan, role } = useApp();
@@ -22,6 +21,7 @@ export default function PatientDetailPage() {
   const [showAddPlan, setShowAddPlan] = useState(false);
   const [newPlanTypeId, setNewPlanTypeId] = useState('');
   const [newPlanPaid, setNewPlanPaid] = useState(0);
+  const [newPlanPending, setNewPlanPending] = useState(0);
 
   if (!patient) {
     return (
@@ -50,24 +50,25 @@ export default function PatientDetailPage() {
       totalSessions: pt.sessionCount,
       usedSessions: 0,
       totalPaid: newPlanPaid,
+      pendingAmount: newPlanPending,
       startDate: new Date().toISOString().split('T')[0],
       status: 'ACTIVE',
     });
     setShowAddPlan(false);
     setNewPlanTypeId('');
     setNewPlanPaid(0);
+    setNewPlanPending(0);
   }
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: 'info', label: 'Información' },
     { id: 'appointments', label: 'Historial citas', count: patientAppointments.length },
     { id: 'plans', label: 'Planes', count: activePatientPlans.length },
-    { id: 'notes', label: 'Fichas clínicas', count: patientNotes.length },
+    { id: 'notes', label: 'Fichas de seguimiento', count: patientNotes.length },
   ];
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Back */}
       <Link href="/patients" className="text-sm text-slate-400 hover:text-slate-600 mb-4 inline-flex items-center gap-1">
         ← Pacientes
       </Link>
@@ -81,11 +82,15 @@ export default function PatientDetailPage() {
           {patient.name.charAt(0)}
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-800">{patient.name}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold text-slate-800">{patient.name}</h1>
+            {patient.isPregnant && (
+              <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-medium">Gestante</span>
+            )}
+          </div>
           <div className="flex flex-wrap gap-3 mt-1 text-sm text-slate-500">
-            <span>DNI {patient.dni}</span>
-            <span>·</span>
-            <span>{getAge(patient.birthDate)} años</span>
+            {patient.dni && <span>DNI {patient.dni}</span>}
+            {patient.birthDate && <><span>·</span><span>{getAge(patient.birthDate)} años</span></>}
             {therapist && (
               <>
                 <span>·</span>
@@ -106,12 +111,12 @@ export default function PatientDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-0 border-b border-slate-200 mb-6">
+      <div className="flex gap-0 border-b border-slate-200 mb-6 overflow-x-auto">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
           >
             {t.label}
             {t.count !== undefined && (
@@ -126,50 +131,43 @@ export default function PatientDetailPage() {
       {/* Tab: Info */}
       {tab === 'info' && (
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
             <h3 className="font-semibold text-slate-800 text-sm">Datos personales</h3>
-            {[
-              ['Nombre completo', patient.name],
-              ['DNI', patient.dni],
-              ['Teléfono', patient.phone],
-              ['Email', patient.email],
-              ['Fecha de nacimiento', `${formatDate(patient.birthDate)} (${getAge(patient.birthDate)} años)`],
-              ['Paciente desde', formatDate(patient.createdAt)],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <div className="text-xs text-slate-400 font-medium">{label}</div>
-                <div className="text-sm text-slate-700 mt-0.5">{value}</div>
-              </div>
-            ))}
+            <InfoField label="Nombre completo" value={patient.name} />
+            <InfoField label="DNI" value={patient.dni} />
+            <InfoField label="Fecha de nacimiento" value={patient.birthDate ? `${formatDate(patient.birthDate)} (${getAge(patient.birthDate)} años)` : '—'} />
+            <InfoField label="Dirección" value={patient.address} />
+            <InfoField label="Ocupación" value={patient.occupation} />
+            <div className="grid grid-cols-2 gap-3">
+              <InfoField label="Peso" value={patient.weight ? `${patient.weight} kg` : '—'} />
+              <InfoField label="Talla" value={patient.height ? `${patient.height} cm` : '—'} />
+            </div>
+            <InfoField label="Celular" value={patient.phone} />
+            <InfoField label="Correo" value={patient.email} />
+            <InfoField label="Paciente desde" value={formatDate(patient.createdAt)} />
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-              <h3 className="font-semibold text-slate-800 text-sm">Contacto de emergencia</h3>
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+              <h3 className="font-semibold text-slate-800 text-sm">Información clínica</h3>
+              <InfoField label="Motivo de consulta" value={patient.consultationReason} />
               <div>
-                <div className="text-xs text-slate-400 font-medium">Nombre</div>
-                <div className="text-sm text-slate-700 mt-0.5">{patient.emergencyContactName}</div>
+                <div className="text-xs text-slate-400 font-medium">Tratamientos previos</div>
+                <div className="text-sm text-slate-700 mt-0.5">
+                  {patient.previousTreatments ? 'Sí' : 'No'}
+                  {patient.previousTreatments && patient.previousTreatmentsDetail && (
+                    <div className="text-slate-600 mt-0.5">{patient.previousTreatmentsDetail}</div>
+                  )}
+                </div>
               </div>
-              <div>
-                <div className="text-xs text-slate-400 font-medium">Teléfono</div>
-                <div className="text-sm text-slate-700 mt-0.5">{patient.emergencyContactPhone}</div>
-              </div>
+              <InfoField label="Exámenes" value={patient.exams} />
+              <InfoField label="Alergias" value={patient.allergies} />
+              <InfoField label="Gestante" value={patient.isPregnant ? 'Sí' : 'No'} />
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
-              <h3 className="font-semibold text-slate-800 text-sm">Información clínica</h3>
-              <div>
-                <div className="text-xs text-slate-400 font-medium">Motivo de consulta</div>
-                <div className="text-sm text-slate-700 mt-0.5">{patient.consultationReason}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-400 font-medium">Antecedentes</div>
-                <div className="text-sm text-slate-700 mt-0.5">{patient.medicalBackground}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-400 font-medium">Derivado por</div>
-                <div className="text-sm text-slate-700 mt-0.5">{patient.referredBy}</div>
-              </div>
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <h3 className="font-semibold text-slate-800 text-sm mb-3">Origen</h3>
+              <InfoField label="¿Cómo se enteró?" value={patient.referralSource} />
             </div>
           </div>
         </div>
@@ -243,6 +241,7 @@ export default function PatientDetailPage() {
             const pt = planTypes.find(p => p.id === pp.planTypeId);
             const progress = (pp.usedSessions / pp.totalSessions) * 100;
             const remaining = pp.totalSessions - pp.usedSessions;
+            const totalPrice = pp.totalPaid + pp.pendingAmount;
             return (
               <div key={pp.id} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -250,13 +249,20 @@ export default function PatientDetailPage() {
                     <div className="font-semibold text-slate-800">{pt?.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">Desde {formatDate(pp.startDate)}</div>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${pp.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : pp.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'}`}>
-                    {pp.status === 'ACTIVE' ? 'Activo' : pp.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
-                  </span>
+                  <div className="flex gap-2">
+                    {pp.pendingAmount > 0 && (
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">
+                        2 cuotas
+                      </span>
+                    )}
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${pp.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' : pp.status === 'COMPLETED' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'}`}>
+                      {pp.status === 'ACTIVE' ? 'Activo' : pp.status === 'COMPLETED' ? 'Completado' : 'Cancelado'}
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div>
-                    <div className="text-xs text-slate-400">Sesiones usadas</div>
+                    <div className="text-xs text-slate-400">Sesiones</div>
                     <div className="font-semibold text-slate-800">{pp.usedSessions} / {pp.totalSessions}</div>
                   </div>
                   <div>
@@ -264,8 +270,14 @@ export default function PatientDetailPage() {
                     <div className={`font-semibold ${remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'}`}>{remaining}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-400">Total pagado</div>
+                    <div className="text-xs text-slate-400">Pagado</div>
                     <div className="font-semibold text-slate-800">{formatPEN(pp.totalPaid)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-400">Pendiente</div>
+                    <div className={`font-semibold ${pp.pendingAmount > 0 ? 'text-orange-600' : 'text-slate-400'}`}>
+                      {pp.pendingAmount > 0 ? formatPEN(pp.pendingAmount) : '—'}
+                    </div>
                   </div>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2">
@@ -274,6 +286,11 @@ export default function PatientDetailPage() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
+                {pp.pendingAmount > 0 && (
+                  <div className="mt-3 text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                    Plan en 2 cuotas — total {formatPEN(totalPrice)}, pendiente {formatPEN(pp.pendingAmount)}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -290,6 +307,7 @@ export default function PatientDetailPage() {
                       setNewPlanTypeId(e.target.value);
                       const pt = planTypes.find(p => p.id === e.target.value);
                       setNewPlanPaid(pt?.price ?? 0);
+                      setNewPlanPending(0);
                     }}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
@@ -297,14 +315,17 @@ export default function PatientDetailPage() {
                     {planTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name} — {formatPEN(pt.price)}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-600 mb-1">Monto pagado (S/.)</label>
-                  <input
-                    type="number"
-                    value={newPlanPaid}
-                    onChange={e => setNewPlanPaid(Number(e.target.value))}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Pagado ahora (S/.)</label>
+                    <input type="number" value={newPlanPaid} onChange={e => setNewPlanPaid(Number(e.target.value))}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Pendiente (2da cuota)</label>
+                    <input type="number" value={newPlanPending} onChange={e => setNewPlanPending(Number(e.target.value))}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowAddPlan(false)} className="px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
@@ -323,12 +344,12 @@ export default function PatientDetailPage() {
         </div>
       )}
 
-      {/* Tab: Clinical Notes */}
+      {/* Tab: Clinical Notes (Ficha de seguimiento) */}
       {tab === 'notes' && (
         <div className="space-y-4">
           {patientNotes.length === 0 && (
             <div className="bg-white rounded-xl border border-slate-200 px-5 py-12 text-center text-slate-400 text-sm">
-              Sin fichas clínicas registradas
+              Sin fichas de seguimiento registradas
             </div>
           )}
           {patientNotes.map(note => {
@@ -346,20 +367,38 @@ export default function PatientDetailPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Qué se trabajó</div>
-                    <p className="text-sm text-slate-700 leading-relaxed">{note.sessionContent}</p>
+                  {note.reason && (
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Motivo</div>
+                      <p className="text-sm text-slate-700 leading-relaxed">{note.reason}</p>
+                    </div>
+                  )}
+                  {note.positionsWorked.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Posiciones trabajadas</div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {note.positionsWorked.map(pos => (
+                          <span key={pos} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium capitalize">{pos}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {note.machinesUsed && (
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Máquinas utilizadas</div>
+                      <p className="text-sm text-slate-700">{note.machinesUsed}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <TreatmentBadge label="Acupuntura" value={note.acupuncture} detail={note.acupunctureDetail} />
+                    <TreatmentBadge label="Tracción" value={note.traction} detail={note.tractionDetail} extra={note.traction === 'si' ? note.tractionType : ''} />
+                    <TreatmentBadge label="Manual" value={note.manual} detail={note.manualDetail} />
+                    <TreatmentBadge label="Quiropráctica" value={note.chiropractic} detail={note.chiropracticDetail} />
                   </div>
                   {note.observations && (
                     <div>
                       <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Observaciones</div>
                       <p className="text-sm text-slate-700 leading-relaxed">{note.observations}</p>
-                    </div>
-                  )}
-                  {note.nextSessionPlan && (
-                    <div>
-                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Próxima sesión</div>
-                      <p className="text-sm text-slate-700 leading-relaxed">{note.nextSessionPlan}</p>
                     </div>
                   )}
                 </div>
@@ -372,6 +411,32 @@ export default function PatientDetailPage() {
       {selectedAppt && (
         <AppointmentModal appointment={selectedAppt} onClose={() => setSelectedAppt(null)} />
       )}
+    </div>
+  );
+}
+
+function InfoField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs text-slate-400 font-medium">{label}</div>
+      <div className="text-sm text-slate-700 mt-0.5">{value || '—'}</div>
+    </div>
+  );
+}
+
+function TreatmentBadge({ label, value, detail, extra }: { label: string; value: string; detail: string; extra?: string }) {
+  const bg = value === 'si' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+             value === 'otros' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+             value === 'no' ? 'bg-slate-50 text-slate-500 border-slate-200' :
+             'bg-slate-50 text-slate-400 border-slate-200';
+  const valueLabel = value === 'si' ? 'Sí' : value === 'no' ? 'No' : value === 'otros' ? 'Otros' : '—';
+  return (
+    <div className={`border rounded-lg px-3 py-2 ${bg}`}>
+      <div className="text-xs font-semibold">{label}</div>
+      <div className="text-sm font-medium mt-0.5">
+        {valueLabel}{extra ? ` · ${extra}` : ''}
+      </div>
+      {detail && <div className="text-xs opacity-75 mt-0.5 truncate" title={detail}>{detail}</div>}
     </div>
   );
 }

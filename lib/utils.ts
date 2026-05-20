@@ -1,4 +1,4 @@
-import { AppointmentStatus, PaymentStatus } from './types';
+import { AppointmentStatus, PaymentStatus, PaymentMethod } from './types';
 
 export function formatPEN(amount: number): string {
   return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(amount);
@@ -35,8 +35,9 @@ export function isSameDay(a: Date, b: Date): boolean {
 
 export function statusLabel(status: AppointmentStatus): string {
   const labels: Record<AppointmentStatus, string> = {
-    SCHEDULED: 'Agendada',
-    CONFIRMED: 'Confirmada',
+    SCHEDULED: 'Sin confirmar',
+    CONFIRMED_24H: 'Confirmada 24h',
+    CONFIRMED_TODAY: 'Confirmada hoy',
     CANCELLED: 'Cancelada',
     NO_SHOW: 'No asistió',
     COMPLETED: 'Completada',
@@ -47,21 +48,35 @@ export function statusLabel(status: AppointmentStatus): string {
 export function statusColor(status: AppointmentStatus): string {
   const colors: Record<AppointmentStatus, string> = {
     SCHEDULED: 'bg-amber-100 text-amber-800',
-    CONFIRMED: 'bg-emerald-100 text-emerald-800',
+    CONFIRMED_24H: 'bg-sky-100 text-sky-800',
+    CONFIRMED_TODAY: 'bg-emerald-100 text-emerald-800',
     CANCELLED: 'bg-red-100 text-red-800',
-    NO_SHOW: 'bg-purple-100 text-purple-800',
-    COMPLETED: 'bg-gray-100 text-gray-700',
+    NO_SHOW: 'bg-slate-200 text-slate-700',
+    COMPLETED: 'bg-violet-100 text-violet-800',
   };
   return colors[status];
 }
 
 export function statusDot(status: AppointmentStatus): string {
   const colors: Record<AppointmentStatus, string> = {
-    SCHEDULED: 'bg-amber-400',
-    CONFIRMED: 'bg-emerald-500',
+    SCHEDULED: 'bg-amber-500',
+    CONFIRMED_24H: 'bg-sky-500',
+    CONFIRMED_TODAY: 'bg-emerald-500',
     CANCELLED: 'bg-red-500',
-    NO_SHOW: 'bg-purple-500',
-    COMPLETED: 'bg-gray-400',
+    NO_SHOW: 'bg-slate-500',
+    COMPLETED: 'bg-violet-500',
+  };
+  return colors[status];
+}
+
+export function statusSolidBg(status: AppointmentStatus): string {
+  const colors: Record<AppointmentStatus, string> = {
+    SCHEDULED: '#F59E0B',
+    CONFIRMED_24H: '#0EA5E9',
+    CONFIRMED_TODAY: '#10B981',
+    CANCELLED: '#EF4444',
+    NO_SHOW: '#64748B',
+    COMPLETED: '#8B5CF6',
   };
   return colors[status];
 }
@@ -84,6 +99,18 @@ export function paymentStatusColor(status: PaymentStatus): string {
   return colors[status];
 }
 
+export function paymentMethodLabel(method: PaymentMethod | null): string {
+  if (!method) return '—';
+  const labels: Record<PaymentMethod, string> = {
+    CASH: 'Efectivo',
+    TRANSFER: 'Transferencia',
+    CARD: 'Tarjeta',
+    YAPE: 'Yape',
+    PLIN: 'Plin',
+  };
+  return labels[method];
+}
+
 export function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -95,4 +122,17 @@ export function getAge(birthDate: string): number {
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+}
+
+export function getBirthdayMonth(birthDate: string): number {
+  return new Date(birthDate).getMonth();
+}
+
+export function getBirthdayDay(birthDate: string): number {
+  return new Date(birthDate).getDate();
+}
+
+export function formatMonth(month: number): string {
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  return months[month];
 }
