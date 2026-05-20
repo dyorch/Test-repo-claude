@@ -107,7 +107,7 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
             <div className="bg-slate-50 rounded-xl p-4 space-y-2.5">
               <DetailRow label="Paciente" value={detailPatient?.name ?? '—'} />
               <DetailRow label="Terapeuta" value={detailTherapist?.name ?? '—'} />
-              <DetailRow label="Habitación" value={detailRoom?.name ?? '—'} />
+              <DetailRow label="Consultorio" value={detailRoom?.name ?? '—'} />
               <DetailRow
                 label="Fecha y hora"
                 value={`${formatDate(appointment.startTime)} · ${formatTime(appointment.startTime)} – ${formatTime(appointment.endTime)}`}
@@ -126,26 +126,7 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
               )}
             </div>
 
-            {/* Clinical note link — show when COMPLETED or note already exists */}
-            {(appointment.status === 'COMPLETED' || !!clinicalNote) && (
-              <Link
-                href={`/appointments/${appointment.id}/clinical-note`}
-                onClick={onClose}
-                className="flex items-center gap-3 px-4 py-3 border border-violet-200 bg-violet-50 text-violet-700 rounded-xl hover:bg-violet-100 transition-colors"
-              >
-                <span className="text-xl">📋</span>
-                <div>
-                  <div className="text-sm font-medium">
-                    {clinicalNote ? 'Ver / editar ficha de seguimiento' : 'Llenar ficha de seguimiento'}
-                  </div>
-                  <div className="text-xs text-violet-500 mt-0.5">
-                    {clinicalNote ? 'Ficha ya registrada' : 'Sin ficha aún'}
-                  </div>
-                </div>
-              </Link>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex flex-wrap justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={onClose}
@@ -160,6 +141,14 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
               >
                 Editar cita
               </button>
+              <Link
+                href={`/appointments/${appointment.id}/clinical-note`}
+                onClick={onClose}
+                className="px-4 py-2 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium flex items-center gap-1.5"
+              >
+                <span>📋</span>
+                {clinicalNote ? 'Ver ficha' : 'Llenar ficha'}
+              </Link>
             </div>
           </div>
         )}
@@ -194,7 +183,7 @@ export default function AppointmentModal({ appointment, defaultDate, defaultHour
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Habitación</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Consultorio</label>
                 <select
                   required
                   value={roomId}

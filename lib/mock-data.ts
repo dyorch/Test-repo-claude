@@ -11,9 +11,9 @@ export const therapists: Therapist[] = [
 ];
 
 export const rooms: Room[] = [
-  { id: 'r1', name: 'Habitación 1', isActive: true },
-  { id: 'r2', name: 'Habitación 2', isActive: true },
-  { id: 'r3', name: 'Habitación 3', isActive: true },
+  { id: 'r1', name: 'Consultorio 1', isActive: true },
+  { id: 'r2', name: 'Consultorio 2', isActive: true },
+  { id: 'r3', name: 'Consultorio 3', isActive: true },
 ];
 
 export const planTypes: PlanType[] = [
@@ -237,7 +237,7 @@ export const clinicalNotes: ClinicalNote[] = [
     positionsWorked: ['boca abajo', 'de costado'],
     machinesUsed: 'Tens, ultrasonido lumbar',
     acupuncture: 'si', acupunctureDetail: 'Puntos lumbares B23, B25',
-    traction: 'si', tractionDetail: '', tractionType: 'lumbar', tractionTypeDetail: '',
+    traction: 'si', tractionDetail: 'Tracción lumbar mecánica 8 minutos a 25kg', tractionType: 'lumbar', tractionTypeDetail: '',
     manual: 'si', manualDetail: 'Movilización lumbar',
     chiropractic: 'no', chiropracticDetail: '',
     observations: 'Mejora notable en rango de movimiento. Sin dolor irradiado hoy.',
@@ -261,7 +261,7 @@ export const clinicalNotes: ClinicalNote[] = [
     positionsWorked: ['boca arriba'],
     machinesUsed: 'Tens cervical',
     acupuncture: 'si', acupunctureDetail: 'Puntos cervicales y trapecio',
-    traction: 'si', tractionDetail: '', tractionType: 'cervical', tractionTypeDetail: '',
+    traction: 'si', tractionDetail: 'Tracción cervical manual suave 5 minutos', tractionType: 'cervical', tractionTypeDetail: '',
     manual: 'si', manualDetail: 'Masaje cervical profundo',
     chiropractic: 'no', chiropracticDetail: '',
     observations: 'Reduce dolor de forma sostenida. Buena respuesta.',
@@ -297,7 +297,7 @@ export const clinicalNotes: ClinicalNote[] = [
     positionsWorked: ['boca abajo', 'ambos lados'],
     machinesUsed: 'Ultrasonido, tens lumbar',
     acupuncture: 'si', acupunctureDetail: 'Puntos lumbares y miembro inferior',
-    traction: 'si', tractionDetail: '', tractionType: 'lumbar', tractionTypeDetail: '',
+    traction: 'si', tractionDetail: 'Tracción lumbar mecánica progresiva 10 minutos', tractionType: 'lumbar', tractionTypeDetail: '',
     manual: 'si', manualDetail: 'Movilización articular vertebral',
     chiropractic: 'otros', chiropracticDetail: 'Ajuste con técnica suave de Thompson',
     observations: 'Sesión intensa pero bien tolerada. Sin dolor ciático irradiado.',

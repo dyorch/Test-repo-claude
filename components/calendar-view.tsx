@@ -271,7 +271,7 @@ export default function CalendarView({ filterTherapistId }: Props) {
                         const patient = patients.find(p => p.id === appt.patientId);
                         const therapist = therapists.find(t => t.id === appt.therapistId);
                         const room = rooms.find(r => r.id === appt.roomId);
-                        const roomShort = room?.name.replace('Habitación', 'H.') ?? '';
+                        const roomShort = room?.name.replace('Consultorio', 'C.') ?? '';
                         const count = dayAppts.length;
                         const slotW = `calc((100% - 6px) / ${count})`;
                         const slotL = `calc(3px + ${apptIdx} * ((100% - 6px) / ${count}))`;

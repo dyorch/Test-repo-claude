@@ -62,6 +62,10 @@ export default function ClinicalNotePage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.positionsWorked.length === 0) {
+      alert('Selecciona al menos una posición trabajada.');
+      return;
+    }
     if (existing) {
       updateClinicalNote({ ...existing, ...form });
     } else {
@@ -101,7 +105,7 @@ export default function ClinicalNotePage() {
         {/* Motivo y EVA */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de la sesión</label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Motivo de la sesión *</label>
             <textarea required value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })}
               rows={2} disabled={!canEdit}
               placeholder="Razón por la que vino hoy…"
@@ -126,7 +130,7 @@ export default function ClinicalNotePage() {
 
           {/* Qué se trabajó */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-2">¿Qué se trabajó? (posiciones)</label>
+            <label className="block text-xs font-medium text-slate-600 mb-2">¿Qué se trabajó? (posiciones) *</label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {POSITIONS_WORKED.map(pos => (
                 <label key={pos} className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${form.positionsWorked.includes(pos) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 hover:border-slate-300'}`}>
@@ -137,12 +141,13 @@ export default function ClinicalNotePage() {
                 </label>
               ))}
             </div>
+            <p className="text-[10px] text-slate-400 mt-1">Selecciona al menos una posición</p>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Máquinas utilizadas</label>
-            <input value={form.machinesUsed} onChange={e => setForm({ ...form, machinesUsed: e.target.value })}
-              disabled={!canEdit} placeholder="Tens, ultrasonido, crioterapia…"
+            <label className="block text-xs font-medium text-slate-600 mb-1">Máquinas utilizadas *</label>
+            <input required value={form.machinesUsed} onChange={e => setForm({ ...form, machinesUsed: e.target.value })}
+              disabled={!canEdit} placeholder="Tens, ultrasonido, crioterapia… (o 'ninguna')"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
           </div>
         </div>
@@ -170,11 +175,12 @@ export default function ClinicalNotePage() {
           />
           {form.traction === 'si' && (
             <div className="ml-6 pl-3 border-l-2 border-blue-200 space-y-2">
-              <label className="block text-xs font-medium text-slate-600">Tipo de tracción</label>
+              <label className="block text-xs font-medium text-slate-600">Tipo de tracción *</label>
               <div className="flex gap-3">
                 {TRACTION_TYPE_OPTIONS.map(opt => (
                   <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
-                    <input type="radio" checked={form.tractionType === opt.value}
+                    <input type="radio" name="tractionType" required
+                      checked={form.tractionType === opt.value}
                       onChange={() => setForm({ ...form, tractionType: opt.value })}
                       disabled={!canEdit} className="text-blue-600" />
                     <span className="text-sm">{opt.label}</span>
@@ -182,9 +188,9 @@ export default function ClinicalNotePage() {
                 ))}
               </div>
               {form.tractionType === 'otros' && (
-                <input value={form.tractionTypeDetail}
+                <input required value={form.tractionTypeDetail}
                   onChange={e => setForm({ ...form, tractionTypeDetail: e.target.value })}
-                  disabled={!canEdit} placeholder="Especifique…"
+                  disabled={!canEdit} placeholder="Especifique tipo de tracción…"
                   className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
               )}
             </div>
@@ -211,8 +217,8 @@ export default function ClinicalNotePage() {
 
         {/* Observaciones */}
         <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <label className="block text-xs font-medium text-slate-600 mb-1">Observaciones</label>
-          <textarea value={form.observations} onChange={e => setForm({ ...form, observations: e.target.value })}
+          <label className="block text-xs font-medium text-slate-600 mb-1">Observaciones *</label>
+          <textarea required value={form.observations} onChange={e => setForm({ ...form, observations: e.target.value })}
             rows={4} disabled={!canEdit}
             placeholder="Evolución, respuesta del paciente, indicaciones…"
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-slate-50" />
@@ -240,14 +246,17 @@ function TreatmentRow({ label, value, detail, disabled, onChange }: {
   disabled: boolean;
   onChange: (v: TreatmentApplied, d?: string) => void;
 }) {
+  const groupName = `treatment-${label.toLowerCase()}`;
+  const showDetail = value === 'si' || value === 'otros';
   return (
     <div>
       <div className="flex items-center gap-4 flex-wrap">
-        <span className="text-sm font-medium text-slate-700 w-28 flex-shrink-0">{label}</span>
+        <span className="text-sm font-medium text-slate-700 w-28 flex-shrink-0">{label} *</span>
         <div className="flex gap-3">
           {TREATMENT_OPTIONS.map(opt => (
             <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" checked={value === opt.value}
+              <input type="radio" name={groupName} required
+                checked={value === opt.value}
                 onChange={() => onChange(opt.value)}
                 disabled={disabled} className="text-blue-600" />
               <span className="text-sm">{opt.label}</span>
@@ -255,10 +264,11 @@ function TreatmentRow({ label, value, detail, disabled, onChange }: {
           ))}
         </div>
       </div>
-      {value === 'otros' && (
-        <input value={detail}
+      {showDetail && (
+        <input required value={detail}
           onChange={e => onChange(value, e.target.value)}
-          disabled={disabled} placeholder="Especifique…"
+          disabled={disabled}
+          placeholder={value === 'si' ? `Detallar técnica de ${label.toLowerCase()} aplicada…` : `Especifique…`}
           className="mt-2 w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50" />
       )}
     </div>

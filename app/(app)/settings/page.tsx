@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   const settingsTabs: { id: SettingsTab; label: string }[] = [
     { id: 'therapists', label: 'Terapeutas y horarios' },
-    { id: 'rooms', label: 'Habitaciones' },
+    { id: 'rooms', label: 'Consultorios' },
     { id: 'whatsapp', label: 'WhatsApp API' },
     { id: 'templates', label: 'Plantillas' },
     { id: 'general', label: 'General' },
@@ -101,8 +101,8 @@ export default function SettingsPage() {
           {/* Rooms */}
           {tab === 'rooms' && (
             <div className="space-y-3">
-              <h2 className="font-semibold text-slate-800">Habitaciones</h2>
-              <p className="text-sm text-slate-500">Activa o desactiva habitaciones. Una habitación desactivada no aparecerá disponible al agendar nuevas citas.</p>
+              <h2 className="font-semibold text-slate-800">Consultorios</h2>
+              <p className="text-sm text-slate-500">Activa o desactiva consultorios. Un consultorio desactivado no aparecerá disponible al agendar nuevas citas.</p>
               {rooms.map(r => (
                 <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold ${r.isActive ? 'bg-blue-500' : 'bg-slate-300'}`}>
